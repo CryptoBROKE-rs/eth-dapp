@@ -38,6 +38,8 @@ export default class ProductList extends Component {
           daysLeft: value.daysLeft,
           color: '#e0eede'
         };
+        console.log(value);
+        console.log(value.owner);
         if (!this.state.onlyOwner){
           newCamps.push(camp);
         } else if (value.owner.toLowerCase() == window.localStorage["publicAddress"]){
@@ -46,10 +48,16 @@ export default class ProductList extends Component {
       }
       var currencies = [];
       currencies.push({ value: 'ETH', label: 'ETH' });
-      if (OldHome.tokensDict) {
-        for (var [label, value] of Object.entries(OldHome.tokensDict)) {
+      if (window.localStorage["layer"] == "L1") {
+        if(OldHome.l1.tokensDict) {
+          for (var [label, value] of Object.entries(OldHome.l1.tokensDict)) {
           currencies.push({ value: value, label: label });
-        }
+        }}
+      } else {
+        if(OldHome.l2.tokensDict) {
+          for (var [label, value] of Object.entries(OldHome.l2.tokensDict)) {
+          currencies.push({ value: value, label: label });
+        }}
       }
       this.setState({
         loading: false,

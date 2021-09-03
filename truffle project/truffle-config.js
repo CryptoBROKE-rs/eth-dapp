@@ -24,7 +24,7 @@ const HDWalletProvider = require("truffle-hdwallet-provider");
 const infuraKey = process.env.INFURA_API_KEY;
 const Mnemonic = process.env.MNEMONIC;
 module.exports = {
-  contracts_build_directory: "../bla/src/abis",  
+  contracts_build_directory: "../frontend/src/abis",  
   /**
    * Networks define how you connect to your ethereum client and let you set the
    * defaults web3 uses to send transactions. If you don't specify one truffle
@@ -65,6 +65,13 @@ module.exports = {
       gas:  15000000,
       provider: function() {
         return new HDWalletProvider(Mnemonic, "https://optimism-kovan.infura.io/v3/"+ infuraKey, 0, 1);
+      }},
+      kovan: {
+      network_id: 42,
+      chain_id: 42,
+      gas:  12500000,
+      provider: function() {
+        return new HDWalletProvider(Mnemonic, "https://kovan.infura.io/v3/"+ infuraKey, 0, 1);
       }
     },
      
@@ -100,6 +107,9 @@ module.exports = {
     timeout: 100000
   },
 
+  api_keys: {
+    etherscan: process.env.ETHERSCAN_API_KEY
+  },
   // Configure your compilers
   compilers: {
     solc: {

@@ -4,8 +4,10 @@ import { init } from 'emailjs-com';
 import Campaign from './abis/Campaign.json';
 import Organisation from './abis/Organisation.json';
 import SwapExamples from './abis/SwapExamples.json';
-import OVM_L1StandardBridge from './abis/OVM_L1StandardBridge.json';
-import OVM_L2StandardBridge from './abis/OVM_L2StandardBridge.json';
+import OVM_L1StandardBridge from './abisL2/OVM_L1StandardBridge.json';
+import OVM_L2StandardBridge from './abisL2/OVM_L2StandardBridge.json';
+import CampaignL2 from './abisL2/Campaign.json';
+import OrganisationL2 from './abisL2/Organisation.json';
 const FormData = require('form-data');
 const axios = require('axios');
 init('user_ZYwxMAlLHOgUNKO4wSLBm');
@@ -287,14 +289,15 @@ class Home extends Component {
     // this.handleToken = this.handleToken.bind(this);
     var provider = new ethers.providers.InfuraProvider('kovan', '0ea19bbf4c4d49518a0966666ff234f3');
     // var provider = ethers.getDefaultProvider('kovan');
+    //'https://tokens.uniswap.org/', 'https://testnet.tokenlist.eth.link/', 
     this.l1 = {
       provider: provider,
       tokensDict: {},
-      tokenListURL: ['https://tokens.uniswap.org/', 'https://testnet.tokenlist.eth.link/'],
+      tokenListURL: ['https://static.optimism.io/optimism.tokenlist.json'],
       orgAddress: process.env.REACT_APP_ORGANISATION_CONTRACT_ADDRESS_L1,
       chainID: 42,
-      orgAbi: [],
-      campAbi: []
+      orgAbi: Organisation.abi,
+      campAbi: Campaign.abi
     };
     provider = new ethers.providers.JsonRpcProvider('https://kovan.optimism.io');
     this.l2 = {
@@ -303,8 +306,8 @@ class Home extends Component {
       tokenListURL: ['https://static.optimism.io/optimism.tokenlist.json'],
       orgAddress: process.env.REACT_APP_ORGANISATION_CONTRACT_ADDRESS_L2,
       chainID: 69,
-      orgAbi: Organisation.abi,
-      campAbi: Campaign.abi
+      orgAbi: OrganisationL2.abi,
+      campAbi: CampaignL2.abi
     };
     console.log(this.l1, this.l2);
     this.subscribed = new Set();
@@ -315,7 +318,8 @@ class Home extends Component {
       this.provider
     );
     this.swapperAddress = process.env.REACT_APP_SWAPPER_CONTRACT_ADDRESS;
-    this.loadTokenList();
+    this.loadTokenList("L1");
+    this.loadTokenList("L2");
     this.pinataApiKey = process.env.REACT_APP_PINATA_API_KEY;
     this.pinataSecretApiKey = process.env.REACT_APP_PINATA_SECRET_KEY;
     this.imgURI =
@@ -347,7 +351,7 @@ class Home extends Component {
   }
   async loadTokenList(layer) {
     require('dotenv').config();
-    if (layer == 'l1') {
+    if (layer == 'L1') {
       var params = this.l1;
     } else {
       var params = this.l2;
@@ -431,6 +435,7 @@ class Home extends Component {
     var counter = await contractOrg.campaignCounter();
     for (let i = 1; i <= counter; i++) {
       var Campaign = {
+        owner: '',
         name: '',
         id: '',
         currFund: '',
@@ -442,6 +447,7 @@ class Home extends Component {
       var addr = await contractOrg.campaigns(i);
       var camp = new ethers.Contract(addr, params.campAbi, params.provider);
       var name = await camp.name();
+      var owner = await camp.owner();
       var id = await camp.id();
       var currFund = await params.provider.getBalance(addr);
       var goal = await camp.goal();
@@ -461,6 +467,7 @@ class Home extends Component {
         var mail = await camp.mails(j);
         mails.push(mail);
       }
+      Campaign.owner = owner.toString();
       Campaign.name = name.toString();
       Campaign.id = id.toString();
       Campaign.currFund = ethers.utils.formatEther(currFund.toString());
@@ -512,7 +519,6 @@ class Home extends Component {
     console.log(amount);
     console.log(token, this.genericERC20Abi, provider);
     var tokenContract = new ethers.Contract(token, this.genericERC20Abi, provider);
-    console.log('1');
     tokenContract = tokenContract.connect(signer);
     var decimals = await tokenContract.decimals();
     amount = ethers.utils.parseUnits(amount, decimals);
@@ -554,7 +560,7 @@ class Home extends Component {
   }
 
   async donate(campaignId, amount, email, currency, layer) {
-    if (layer == 'l1') {
+    if (layer == 'L1') {
       var params = this.l1;
     } else {
       var params = this.l2;
@@ -570,9 +576,12 @@ class Home extends Component {
         //handle error here
         console.log(err);
       });
+    console.log(params);
+    console.log(layer);
+    console.log(window.localStorage["layer"]);
     var contractOrg = new ethers.Contract(params.orgAddress, params.orgAbi, params.provider);
     var campAddress = await contractOrg.campaigns(parseInt(campaignId, 10));
-    var camp = new ethers.Contract(campAddress, this.campAbi, this.provider);
+    var camp = new ethers.Contract(campAddress, params.campAbi, params.provider);
     var name = await camp.name();
     var block = await params.provider.getBlock('latest');
     var stamp = block.timestamp;
@@ -610,23 +619,30 @@ class Home extends Component {
         contract = contract.connect(signer);
         const gasPrice = await provider.getGasPrice();
         if (currency == 'ETH') {
-          const gasEstimate = await contract.estimateGas.donate(email, uri);
+          const gasEstimate = await contract.estimateGas.donateETH(email);
           var parameters = {
             value: ethers.utils.parseEther(amount),
             gasLimit: gasEstimate,
             gasPrice: gasPrice
           };
           console.log(parameters);
-          var tx = await contract.donateETH(email, uri, parameters);
+          var tx = await contract.donateETH(email, parameters);
         } else {
+          console.log("help");
           var token = currency;
-          const gasEstimate = await contract.estimateGas.donateETH(email, uri);
+          var tokenContract = new ethers.Contract(token, this.genericERC20Abi, params.provider);
+          tokenContract = tokenContract.connect(signer);
+          var decimals = await tokenContract.decimals();
+          amount = ethers.utils.parseUnits(amount, decimals);
+          var approval = await tokenContract.approve(campAddress, amount, parameters);
+          const gasEstimate = await contract.estimateGas.donate(email, token, amount);
           var parameters = {
             value: ethers.utils.parseEther(amount),
             gasLimit: gasEstimate,
             gasPrice: gasPrice
           };
-          var tx = await contract.donateETH(email, uri, parameters);
+          console.log("help");
+          var tx = await contract.donate(email, token, amount, parameters);
         }
         this.setState({
           campId: '',

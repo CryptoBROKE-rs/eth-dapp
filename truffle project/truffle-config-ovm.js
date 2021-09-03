@@ -4,6 +4,8 @@ const HDWalletProvider = require('@truffle/hdwallet-provider');
 const infuraKey = process.env.INFURA_API_KEY;
 const mnemonic = process.env.MNEMONIC;
 module.exports = {
+  contracts_directory: "./contractsL2",
+  contracts_build_directory: "./build/OVMContracts",
   networks: {
     optimistic_kovan: {
       network_id: 69,

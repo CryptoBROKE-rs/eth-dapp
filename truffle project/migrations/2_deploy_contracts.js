@@ -1,7 +1,7 @@
 const Campaign = artifacts.require('Campaign');
 const Organisation = artifacts.require('Organisation');
-const NFT = artifacts.require('SimpleNFT');
-const Swapper = artifacts.require('SwapExamples');
+//const NFT = artifacts.require('SimpleNFT');
+//const Swapper = artifacts.require('SwapExamples');
 require('dotenv').config();
 
 module.exports = async function (deployer, network, accounts) {
@@ -11,10 +11,10 @@ module.exports = async function (deployer, network, accounts) {
 
   //Deploy NFT
   // await deployer.deploy(NFT)
-  const NFTs = await NFT.deployed();
+  //const NFTs = await NFT.deployed();
   // Deploy Organisation
   //console.log(NFTs.address)
-  await deployer.deploy(Organisation, NFTs.address);
+  await deployer.deploy(Organisation);
   const organisation = await Organisation.deployed();
   //Deploy Swapper
   // await deployer.deploy(Swapper, process.env.UNISWAP_ROUTER_ADDRESS)
