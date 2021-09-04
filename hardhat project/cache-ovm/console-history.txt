@@ -1,0 +1,67 @@
+tx = await campaign5.donate("mail", "0x4911b761993b9c8c0d14Ba2d86902AF6B0074F5B",500)
+tx = await campaign5.donate("mail", "0x4200000000000000000000000000000000000006(opens new window)",500)
+tx = await campaign5.donate("mail", "0x4200000000000000000000000000000000000006",500)
+campaign5 = await Camp2.attach("0xB11933E52B1A9496Aa95b0f88bce94961058434b")
+const Camp2 = await ethers.getContractFactory('Campaign');
+tx = await campaign5.donate("mail", "0x4200000000000000000000000000000000000006",500)
+tx = await campaign5.donate("mail", "0x4200000000000000000000000000000000000006(opens new window)",500)
+tx = await campaign5.donate("mail", "0x4911b761993b9c8c0d14Ba2d86902AF6B0074F5B",500)
+campaign5 = await Camp2.attach("0xB11933E52B1A9496Aa95b0f88bce94961058434b")
+ethers.utils.getAddress("0x0")
+ethers.utils.getAddress("0x000000000000000000000000")
+ethers.utils.getAddress("0x0")
+ethers.utils.getAddress("0")
+ethers.utils.getAddress(0)
+tx = await campaign5.donate("mail", "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",500)
+campaign5 = await Camp2.attach("0x54868F824265450764C637EaE2B6be4C649e749b")
+tx = await campaign5.donate("mail", "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",500)
+campaign5 = await Camp2.attach("0xCf5E0Db3F778C7B7591Cb164adC457c0f7c1A416")
+tx = await campaign5.donate("mail", "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",500)
+tx = await campaign5.donate("mail", "0x4200000000000000000000000000000000000006",500)
+campaign5 = await Camp2.attach("0x29c1AC5b421268948e341cf3C3C403cD5535Ca15")
+tx = await campaign5.donate("mail", "0x4200000000000000000000000000000000000006",500)
+tx = await campaign5.donate("mail", "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",500)
+campaign5 = await Camp2.attach("0x4824103093a80b9752619b59c776A170b9bD7cb1")
+tx = await campaign5.donate("mail", "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",500)
+campaign5 = await Camp2.attach("0xdA3861D9B1EA3A1D2E57A8dB95112BBfed442731")
+tx
+var tx = await campaign5.donate("mail", "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",500)
+campaign5
+var campaign5 = await Camp2.attach("0xb6c4f6A1411D7faAbD89Ad00A0720e5631C84363")
+const campaign3 = await Camp2.attach("0xb6c4f6A1411D7faAbD89Ad00A0720e5631C84363")
+var tx = await campaign3.donate("mail", "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",500)
+const campaign3 = await Camp2.attach("0x9E7dc6BF0e1D25201BFEd44d80205c1664d97D18")
+Camp2
+const Camp2 = await ethers.getContractFactory('Campaign');
+.exit
+var tx = await campaign3.donate("mail", "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",500,{gasLimit:125000000})
+var tx = await campaign3.donate("mail", "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",500)
+var tx = await campaign3.donate("mail", "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",500,{gasLimit:100000000})
+var tx = await campaign3.donate("mail", "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",500,{gas:100000000})
+var tx = await campaign3.donate("mail", "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",500)
+const campaign3 = await Camp2.attach("0x77781d312197fbC29Af9759390FDb394798B6CAC")
+var tx = await campaign2.donate("mail", "0x4911b761993b9c8c0d14Ba2d86902AF6B0074F5B",500)
+var tx = await campaign2.donate("mail", "0x4911b761993b9c8c0d14Ba2d86902AF6B0074F5B",500, {gasLimit: 10000000})
+const campaign2 = await Camp2.attach("0x05B77Af930a05fd164b4040091Ba3e4F401cd7D4")
+var tx = await campaign.donate("mail", "0x4911b761993b9c8c0d14Ba2d86902AF6B0074F5B",500, {gasLimit: 10000000})
+var tx = await campaign.donate("mail", "0x4911b761993b9c8c0d14Ba2d86902AF6B0074F5B",500)
+name
+var name = await campaign.name()
+campaign
+const campaign = await Camp2.attach("0x8921E155c34fdA42b1Fe7779b448C3ab457091b6")
+const camp2 = await Camp2.attach
+Camp2
+const Camp2 = await ethers.getContractFactory('Campaign');
+const Camp = await ethers.getContractFactory('Campaign');
+Camp
+const camp = await Camp.deployed()
+const Camp = Campaign.deployed()
+Camp
+const camp = await Camp.attach('0x8921E155c34fdA42b1Fe7779b448C3ab457091b6')
+const camp = await Box.attach('0x8921E155c34fdA42b1Fe7779b448C3ab457091b6')
+const Camp = await ethers.getContractFactory('Campaign');
+config
+ethers
+config
+let camp = Campaign.deployed()
+.exit

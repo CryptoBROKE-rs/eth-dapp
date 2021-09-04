@@ -36,10 +36,50 @@ export default class ProductList extends Component {
           description: value.description,
           endStamp: value.endTimeStamp,
           daysLeft: value.daysLeft,
-          color: '#e0eede'
+          color: '#e0eede',
+          uri: value.uri,
+          currency: value.currency
         };
-        console.log(value);
-        console.log(value.owner);
+        if (!this.state.onlyOwner){
+          newCamps.push(camp);
+        } else if (value.owner.toLowerCase() == window.localStorage["publicAddress"]){
+          newCamps.push(camp);
+        }
+      }
+      for (var [key, value] of Object.entries(rez.finishedCamps)) {
+        var camp = {
+          owner: value.owner,
+          name: value.name,
+          id: value.id,
+          currFund: value.currFund,
+          goal: value.goal,
+          description: value.description,
+          endStamp: value.endTimeStamp,
+          daysLeft: value.daysLeft,
+          color: '#9a9a9a',
+          uri: value.uri,
+          currency: value.currency
+        };
+        if (!this.state.onlyOwner){
+          newCamps.push(camp);
+        } else if (value.owner.toLowerCase() == window.localStorage["publicAddress"]){
+          newCamps.push(camp);
+        }
+      }
+      for (var [key, value] of Object.entries(rez.inactiveCamps)) {
+        var camp = {
+          owner: value.owner,
+          name: value.name,
+          id: value.id,
+          currFund: value.currFund,
+          goal: value.goal,
+          description: value.description,
+          endStamp: value.endTimeStamp,
+          daysLeft: value.daysLeft,
+          color: '#9a9a9a',
+          uri: value.uri,
+          currency: value.currency
+        };
         if (!this.state.onlyOwner){
           newCamps.push(camp);
         } else if (value.owner.toLowerCase() == window.localStorage["publicAddress"]){
@@ -71,7 +111,7 @@ export default class ProductList extends Component {
         <Grid container spacing={3}>
           {this.state.currCampList.map((camp) => (
             <Grid key={camp.id} item xs={12} sm={6} md={3}>
-              <ShopProductCard camp={camp} currencies={this.state.currs} />
+              <ShopProductCard camp={camp} currencies={this.state.currs} owner={this.state.onlyOwner}/>
             </Grid>
           ))}
         </Grid>

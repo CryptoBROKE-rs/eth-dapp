@@ -76,7 +76,7 @@ export default function Login(props) {
     const signer = provider.getSigner();
     var address = await signer.getAddress();
     const contractOrg = new ethers.Contract(
-      process.env.REACT_APP_ORGANISATION_CONTRACT_ADDRESS,
+      process.env.REACT_APP_ORGANISATION_CONTRACT_ADDRESS_L1,
       orgAbi,
       provider
     );

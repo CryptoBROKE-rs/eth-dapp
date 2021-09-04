@@ -35,6 +35,7 @@ export default function Router(props) {
     window.localStorage['organisation'] = payload['organization'];
     window.localStorage['id'] = payload['id'];
     window.localStorage['jwt'] = auth['accessToken'];
+    window.localStorage['layer'] = "L1";
 
     setState(payload);
   };

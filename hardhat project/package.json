@@ -1,0 +1,29 @@
+{
+  "name": "hardhat-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-etherscan": "^2.1.6",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "chai": "^4.3.4",
+    "ethereum-waffle": "^3.4.0",
+    "ethers": "^5.4.6",
+    "hardhat": "^2.6.2"
+  },
+  "dependencies": {
+    "@eth-optimism/contracts": "^0.4.10",
+    "@eth-optimism/hardhat-ovm": "^0.2.3",
+    "@eth-optimism/plugins": "^1.0.0-alpha.3",
+    "@openzeppelin/contracts": "^3.1.0-solc-0.7",
+    "@uniswap/v2-periphery": "^1.1.0-beta.0",
+    "@uniswap/v3-periphery": "^1.1.1",
+    "dotenv": "^10.0.0"
+  }
+}

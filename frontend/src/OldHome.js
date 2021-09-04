@@ -287,7 +287,7 @@ class Home extends Component {
     // this.handleEmail = this.handleEmail.bind(this);
     // this.handleMemberAddress = this.handleMemberAddress.bind(this);
     // this.handleToken = this.handleToken.bind(this);
-    var provider = new ethers.providers.InfuraProvider('kovan', '0ea19bbf4c4d49518a0966666ff234f3');
+    var provider = new ethers.providers.InfuraProvider('kovan', '6d31cb4cff10447d83830dd5eaee29e2');
     // var provider = ethers.getDefaultProvider('kovan');
     //'https://tokens.uniswap.org/', 'https://testnet.tokenlist.eth.link/', 
     this.l1 = {
@@ -309,7 +309,6 @@ class Home extends Component {
       orgAbi: OrganisationL2.abi,
       campAbi: CampaignL2.abi
     };
-    console.log(this.l1, this.l2);
     this.subscribed = new Set();
     this.tokenListJSON = [];
     this.contractOrg = new ethers.Contract(
@@ -442,7 +441,9 @@ class Home extends Component {
         goal: '',
         description: '',
         mails: [],
-        endTimeStamp: 0
+        endTimeStamp: 0,
+        uri : '',
+        currency: ''
       };
       var addr = await contractOrg.campaigns(i);
       var camp = new ethers.Contract(addr, params.campAbi, params.provider);
@@ -456,6 +457,16 @@ class Home extends Component {
       var block = await params.provider.getBlock('latest');
       var currStamp = block.timestamp;
       var endStamp = await camp.endTimeStamp();
+      var uri = await camp.URI();
+      var currToken = await camp.wantToken();
+      for (var [key, label] of Object.entries(params.tokensDict)){
+        if (label == currToken) {
+          var currency = key;
+          break;
+        } else {
+          var currency = "ETH";
+        }
+      }
       const date = Math.floor(new Date(endStamp * 1000));
       const date2 = new Date(endStamp * 1000);
       const currDate = Math.floor(new Date());
@@ -476,6 +487,8 @@ class Home extends Component {
       Campaign.mails = mails;
       Campaign.endTimeStamp = endStamp;
       Campaign.daysLeft = daysLeft;
+      Campaign.uri = uri;
+      Campaign.currency = currency;
       if (currStamp > endStamp) {
         inactiveCamps[Campaign.id] = Campaign;
       } else if (finished == true) {
@@ -634,7 +647,9 @@ class Home extends Component {
           tokenContract = tokenContract.connect(signer);
           var decimals = await tokenContract.decimals();
           amount = ethers.utils.parseUnits(amount, decimals);
-          var approval = await tokenContract.approve(campAddress, amount, parameters);
+          var approval = await tokenContract.approve(campAddress, amount, params);
+          //var approval = await tokenContract.approve("0xa7E0b53d3A1df03ff401DaECA223B90C677C7572", 1000000000);
+          //return;
           const gasEstimate = await contract.estimateGas.donate(email, token, amount);
           var parameters = {
             value: ethers.utils.parseEther(amount),
@@ -802,6 +817,23 @@ class Home extends Component {
     });
     return 0;
   }
+
+  async changeDate(timestamp, campaignId, layer) {
+    if (layer == 'L1') {
+      var params = this.l1;
+    } else {
+      var params = this.l2;
+    }
+    var contractOrg = new ethers.Contract(params.orgAddress, params.orgAbi, params.provider);
+    var campAddress = await contractOrg.campaigns(parseInt(campaignId, 10));
+    var camp = new ethers.Contract(campAddress, params.campAbi, params.provider);
+    console.log(contractOrg);
+    console.log(campAddress);
+    console.log(timestamp);
+    await camp.changeEndDate(timestamp);
+    console.log(camp.endTimeStamp);
+    return 0;
+  }
   //   async addCampaign(name, goal, description, date, time) {
   //     var datetime = date + 'T' + time;
   //     var stamp = new Date(datetime);
@@ -817,30 +849,34 @@ class Home extends Component {
   //     console.log(goal._hex[0]);
   //     var tx = await orgContract.addCampaign(name, tokens, description, stamp, address);
   //   }
-  async addCampaign(name, goal, description, date, time, uri) {
+  async addCampaign(name, goal, description, date, time, wantToken, uri, wantTokenL2, L2Address, layer) {
     require('dotenv').config();
     console.log(date);
     console.log(time);
     var datetime = date.setHours(time.getHours(), time.getMinutes(), 0, 0);
     console.log(datetime);
     var stamp = Math.floor(datetime / 1000);
-    const orgAbi = Organisation.abi;
+    if (layer == 'L1') {
+      var params = this.l1;
+    } else {
+      var params = this.l2;
+    }
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
     var address = await signer.getAddress();
-    const orgAddress = process.env.REACT_APP_ORGANISATION_CONTRACT_ADDRESS;
-    console.log(orgAddress);
-    const contractOrg = new ethers.Contract(orgAddress, orgAbi, provider);
+    const contractOrg = new ethers.Contract(params.orgAddress, params.orgAbi, params.provider);
     const orgContract = contractOrg.connect(signer);
     goal = ethers.utils.parseEther(goal);
     const gasPrice = await provider.getGasPrice();
     console.log(stamp);
-    const gasEstimate = await orgContract.estimateGas.addCampaign(
+    if (layer == "L2") {
+      const gasEstimate = await orgContract.estimateGas.addCampaign(
       name,
       goal,
       description,
       stamp,
-      address
+      wantToken,
+      uri
     );
     console.log(gasPrice);
     console.log(gasEstimate, gasPrice);
@@ -848,10 +884,73 @@ class Home extends Component {
       gasLimit: gasEstimate,
       gasPrice: gasPrice
     };
-    var tx = await orgContract.addCampaign(name, goal, description, stamp, address, parameters);
+    var tx = await orgContract.addCampaign(
+      name,
+      goal,
+      description,
+      stamp,
+      wantToken,
+      uri,
+      parameters
+    );
 
     var receipt = await tx.wait();
+    var campaignId = await contractOrg.campaignCounter();
+    var campAddress = await contractOrg.campaigns(campaignId);
     window.location.replace('http://localhost:3000');
+    return campAddress;
+    } else {
+      const gasEstimate = await orgContract.estimateGas.addCampaign(
+      name,
+      goal,
+      description,
+      stamp,
+      wantToken,
+      uri,
+      L2Address,
+      wantTokenL2
+    );
+    console.log(gasPrice);
+    console.log(gasEstimate, gasPrice);
+    var parameters = {
+      gasLimit: 12500000,
+      gasPrice: gasPrice
+    };
+    var tx = await orgContract.addCampaign(
+      name,
+      goal,
+      description,
+      stamp,
+      wantToken,
+      uri,
+      L2Address,
+      wantTokenL2,
+      parameters
+    );
+
+    var receipt = await tx.wait();
+    var campaignId = await contractOrg.campaignCounter();
+    var campAddress = await contractOrg.campaigns(campaignId);
+    window.location.replace('http://localhost:3000');
+    return campAddress;
+    }
+    // const gasEstimate = await orgContract.estimateGas.addCampaign(
+    //   name,
+    //   goal,
+    //   description,
+    //   stamp,
+    //   address
+    // );
+    // console.log(gasPrice);
+    // console.log(gasEstimate, gasPrice);
+    // var parameters = {
+    //   gasLimit: gasEstimate,
+    //   gasPrice: gasPrice
+    // };
+    // var tx = await orgContract.addCampaign(name, goal, description, stamp, address, parameters);
+
+    // var receipt = await tx.wait();
+    // window.location.replace('http://localhost:3000');
   }
   handleLoadingChange(event) {
     this.setState({ loading: true });
