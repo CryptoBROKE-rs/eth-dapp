@@ -646,8 +646,9 @@ class Home extends Component {
           console.log('help');
           var token = ethers.utils.getAddress(currency);
           var tokenContract = new ethers.Contract(token, this.genericERC20Abi, params.provider);
-          tokenContract = tokenContract.connect(signer);
           var decimals = await tokenContract.decimals();
+          tokenContract = tokenContract.connect(signer);
+          console.log(layer);
           amount = ethers.utils.parseUnits(amount, decimals);
           if (layer == 'L1') {
             var parameters = {
@@ -867,17 +868,10 @@ class Home extends Component {
     const signer = provider.getSigner();
     var address = await signer.getAddress();
 
-
-    const contractOrg = new ethers.Contract(
-        params.orgAddress,
-        params.orgAbi,
-        params.provider
-    );
+    const contractOrg = new ethers.Contract(params.orgAddress, params.orgAbi, params.provider);
 
     const orgContract = contractOrg.connect(signer);
     var member = await contractOrg.members(address);
-
-
 
     if (!member) {
       var gasLimit = layer == 'L1' ? 12_500_000 : await orgContract.estimateGas.addMember(address);
@@ -919,13 +913,13 @@ class Home extends Component {
     const contractOrg = new ethers.Contract(params.orgAddress, params.orgAbi, params.provider);
     const orgContract = contractOrg.connect(signer);
     goal = ethers.utils.parseEther(goal)._hex;
-    console.log(goal)
+    console.log(goal);
     const gasPrice = await provider.getGasPrice();
     console.log(stamp);
 
-    console.log('kurac')
-    console.log(name, goal, description, stamp, wantToken, uri)
-    console.log(params)
+    console.log('kurac');
+    console.log(name, goal, description, stamp, wantToken, uri);
+    console.log(params);
     if (layer === 'L2') {
       const gasEstimate = await orgContract.estimateGas.addCampaign(
         name,
@@ -935,7 +929,7 @@ class Home extends Component {
         wantToken,
         uri
       );
-      console.log('kita')
+      console.log('kita');
       console.log(gasPrice);
       console.log(gasEstimate, gasPrice);
       var parameters = {
@@ -953,7 +947,7 @@ class Home extends Component {
         parameters
       );
 
-      console.log('pimpek')
+      console.log('pimpek');
 
       var receipt = await tx.wait();
       var campaignId = await contractOrg.campaignCounter();
