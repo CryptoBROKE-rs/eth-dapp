@@ -287,7 +287,7 @@ class Home extends Component {
     // this.handleEmail = this.handleEmail.bind(this);
     // this.handleMemberAddress = this.handleMemberAddress.bind(this);
     // this.handleToken = this.handleToken.bind(this);
-    var provider = new ethers.providers.InfuraProvider('kovan', '6d31cb4cff10447d83830dd5eaee29e2');
+    var provider = new ethers.providers.InfuraProvider('kovan', process.env.REACT_APP_INFURA_KEY);
     // var provider = ethers.getDefaultProvider('kovan');
     //'https://tokens.uniswap.org/', 'https://testnet.tokenlist.eth.link/',
     this.l1 = {
@@ -878,7 +878,7 @@ class Home extends Component {
     var datetime = date.setHours(time.getHours(), time.getMinutes(), 0, 0);
     console.log(datetime);
     var stamp = Math.floor(datetime / 1000);
-    if (layer == 'L1') {
+    if (layer === 'L1') {
       var params = this.l1;
     } else {
       var params = this.l2;
@@ -888,10 +888,15 @@ class Home extends Component {
     var address = await signer.getAddress();
     const contractOrg = new ethers.Contract(params.orgAddress, params.orgAbi, params.provider);
     const orgContract = contractOrg.connect(signer);
-    goal = ethers.utils.parseEther(goal);
+    goal = ethers.utils.parseEther(goal)._hex;
+    console.log(goal)
     const gasPrice = await provider.getGasPrice();
     console.log(stamp);
-    if (layer == 'L2') {
+
+    console.log('kurac')
+    console.log(name, goal, description, stamp, wantToken, uri)
+    console.log(params)
+    if (layer === 'L2') {
       const gasEstimate = await orgContract.estimateGas.addCampaign(
         name,
         goal,
@@ -900,12 +905,14 @@ class Home extends Component {
         wantToken,
         uri
       );
+      console.log('kita')
       console.log(gasPrice);
       console.log(gasEstimate, gasPrice);
       var parameters = {
         gasLimit: gasEstimate,
         gasPrice: gasPrice
       };
+
       var tx = await orgContract.addCampaign(
         name,
         goal,
@@ -915,6 +922,8 @@ class Home extends Component {
         uri,
         parameters
       );
+
+      console.log('pimpek')
 
       var receipt = await tx.wait();
       var campaignId = await contractOrg.campaignCounter();
