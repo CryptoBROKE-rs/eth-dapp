@@ -13,10 +13,10 @@ async function main() {
   // manually to make sure everything is compiled
   // await hre.run('compile');
 
-  // const Organisation = await hre.ethers.getContractFactory('Organisation');
-  // const organisation = await Organisation.deploy();
-  // await organisation.deployed();
-  // console.log('Organisation deployed to:', organisation.address);
+  const Organisation = await hre.ethers.getContractFactory('Organisation');
+  const organisation = await Organisation.deploy();
+  await organisation.deployed();
+  console.log('Organisation deployed to:', organisation.address);
 
   // const Campaign = await hre.ethers.getContractFactory('Campaign');
   // const camp = await Campaign.deploy(
@@ -26,15 +26,16 @@ async function main() {
   //   'test',
   //   1630857307,
   //   '0x4200000000000000000000000000000000000006',
-  //   'QmSgvgwxZGaBLqkGyWemEDqikCqU52XxsYLKtdy3vGZ8uq'
+  //   'QmSgvgwxZGaBLqkGyWemEDqikCqU52XxsYLKtdy3vGZ8uq',
+  //   '0xd438644837866493bFF771480aAD4B71F2B8aC97'
   // );
   // await camp.deployed();
   // console.log('Campaign deployed to:', camp.address);
 
-  const YieldFarm = await hre.ethers.getContractFactory('LiquidityExamplesTest');
-  const yieldfarm = await YieldFarm.deploy('0xC36442b4a4522E871399CD717aBDD847Ab11FE88');
-  await yieldfarm.deployed();
-  console.log('Yield Farm deployed to:', yieldfarm.address);
+  // const YieldFarm = await hre.ethers.getContractFactory('LiquidityExamplesTest');
+  // const yieldfarm = await YieldFarm.deploy('0xC36442b4a4522E871399CD717aBDD847Ab11FE88');
+  // await yieldfarm.deployed();
+  // console.log('Yield Farm deployed to:', yieldfarm.address);
 
   // console.log("Greeter deployed to:", greeter.address);
 }

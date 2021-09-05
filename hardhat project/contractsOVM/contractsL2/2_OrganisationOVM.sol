@@ -30,7 +30,7 @@ contract Organisation {
         require(_endTimestamp > block.timestamp, "Organisation::addCampaign: Campaign must end in the future");
         campaignCounter ++;
         campaigns[campaignCounter] = new Campaign(campaignCounter, _name, _goal, _description, _endTimestamp, _wantToken,
-                                                 _uri);
+                                                 _uri, msg.sender);
     }
     
     function addMember(address _member) public {

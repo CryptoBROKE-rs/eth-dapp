@@ -5,7 +5,8 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@eth-optimism/contracts/iOVM/bridge/tokens/iOVM_L1StandardBridge.sol";
-//import "./4_SimpleNFT.sol";
+import "synthetix/contracts/interfaces/ISynthetix.sol";
+import "synthetix/contracts/interfaces/IAddressResolver.sol";
 
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
@@ -35,7 +36,8 @@ contract Campaign {
     //SimpleNFT public nfts;
     string public URI;
     address public wantTokenL2;
-    
+    IAddressResolver public synthetixResolver=IAddressResolver(0x7a6f9eDDC03Db81927eA4131919343f93CA9b6a7);
+    address public SNX=0x0064A673267696049938AA47595dD0B3C2e705A1;
     address public v3factory=0x1F98431c8aD98523631AE4a59f267346ea31F984;
     address public v3router=0xE592427A0AEce92De3Edee1F18E0157C05861564;
     address public WETH=0x4200000000000000000000000000000000000006;
@@ -44,13 +46,13 @@ contract Campaign {
     address public L1StandardBridge = 0x22F24361D548e5FaAfb36d1437839f080363982B;
     uint24 public constant poolFee = 3000;
 
-    constructor(uint _id, string memory _name, uint _goal, string memory _description, uint _endTimeStamp, address _wantToken, string memory _uri){
+    constructor(uint _id, string memory _name, uint _goal, string memory _description, uint _endTimeStamp, address _wantToken, string memory _uri, address payable _beneficiary){
         id = _id;
         name = _name;
         currFund = 0;
         goal = _goal;
         description = _description;
-        owner = msg.sender;
+        owner = _beneficiary;
         endTimeStamp = _endTimeStamp;
         wantToken = _wantToken;
         URI = _uri;
@@ -82,35 +84,11 @@ contract Campaign {
         }
         return;
     }
-    // function getAmounts(uint256 _amountIn, address _donorToken) private returns(uint256, uint256){
-    //     (uint256 reserveA, uint256 reserveB) = UniswapV2Library.getReserves(
-    //         address(v3factory),
-    //         _donorToken,
-    //         wantToken
-    //     );
-
-    //     uint256 _amountInWantTokens = UniswapV2Library.getAmountOut(
-    //         _amountIn,
-    //         reserveA,
-    //         reserveB
-    //     );
-
-    //     uint256 _maxDonationAmountInWantTokens = getMaxDonationAmount(_amountInWantTokens);
-
-    //     uint256 _finalDonationAmount = UniswapV2Library.getAmountOut(
-    //         _maxDonationAmountInWantTokens,
-    //         reserveB,
-    //         reserveA
-    //     );
-    //     return (_finalDonationAmount, _maxDonationAmountInWantTokens);
-    // }
     function donate(string memory _mail, address _donorToken, uint256 _amountIn) public payable returns(bool sufficient) {
         require(IERC20(_donorToken).balanceOf(msg.sender) >= _amountIn, "Campaign::donate: Insuficient funds");
         require(endTimeStamp > block.timestamp, "Campaign::donate: This campaign has already finished");
-        //require(currFund + _amountIn <= goal, "Campaign::donate: Hard cap reached");
         require(_donorToken != address(0), "SupportChildren::donate: donorToken == 0x, use donateETH instead");
         
-        //bool isCampaignInETH = wantToken == address(0x4200000000000000000000000000000000000006);
         uint256 _finalDonationAmount = 0;
 
         if (wantToken == _donorToken) {
@@ -118,10 +96,6 @@ contract Campaign {
             donateTokens(_mail, _donorToken, _finalDonationAmount);
             return true;
         }else{
-        
-        // if (isCampaignInETH) {
-        //     wantToken = WETH; // no direct pairs to eth in uniswap v2
-        // }
         
         require(
              IUniswapV3Factory(v3factory).getPool(_donorToken, wantToken, poolFee) != address(0),
@@ -133,7 +107,6 @@ contract Campaign {
         path[1] = wantToken;
         uint256 _amountInWantTokens;
         uint256 _maxDonationAmountInWantTokens;
-        // (_finalDonationAmount, _maxDonationAmountInWantTokens) = getAmounts(_amountIn, _donorToken);
 
         IERC20(_donorToken).transferFrom(
             msg.sender,
@@ -148,23 +121,6 @@ contract Campaign {
 
         uint256 _swapReturnValues;
 
-        // // if (isCampaignInETH) {
-        // //     ISwapRouter.ExactInputSingleParams memory params =
-        // //     ISwapRouter.ExactInputSingleParams({
-        // //         tokenIn: _donorToken,
-        // //         tokenOut: WETH,
-        // //         fee: poolFee,
-        // //         recipient: address(this),
-        // //         deadline: block.timestamp + 1000,
-        // //         amountIn: _finalDonationAmount,
-        // //         amountOutMinimum: _maxDonationAmountInWantTokens.mul(9700).div(10000),
-        // //         sqrtPriceLimitX96: 0
-        // //     });
-        // //     _swapReturnValues = ISwapRouter(v3router).exactInputSingle(params);
-        // //     if (L2 != address(0)){
-        // //         iOVM_L1StandardBridge(L1StandardBridge).depositETHTo{value: address(this).balance}(L2,2000000,"0x");
-        // //     }
-        // // } else {
             ISwapRouter.ExactInputSingleParams memory params =
             ISwapRouter.ExactInputSingleParams({
                 tokenIn: path[0],
@@ -225,75 +181,6 @@ contract Campaign {
     function changeEndDate(uint _endTimeStamp) public {
         endTimeStamp = _endTimeStamp;
     }
-    
-    // function donateETH(string memory _mail) external payable {
-    //     //uint256 balance = IERC20(0x4200000000000000000000000000000000000006).balanceOf(msg.sender);
-    //     //require(msg.sender.balance >= _amountIn, "Campaign::donate: Insuficient funds");
-    //     require(endTimeStamp > block.timestamp, "Campaign::donate: This campaign has already finished");
-    //     require(msg.value > 0, "SupportChildren::donateETH: You must send ether");
-
-    //     uint256 _finalDonationAmount = 0;
-
-    //     if (wantToken == address(0)) {
-
-    //         _finalDonationAmount = getMaxDonationAmount(msg.value);
-
-    //         //payable(_beneficiary).transfer(_finalDonationAmount);
-    //         currFund += _finalDonationAmount;
-
-    //         if (msg.value > _finalDonationAmount) {
-    //             payable(msg.sender).transfer(msg.value - _finalDonationAmount);
-    //         }
-
-    //         if (donators[msg.sender] == false){
-    //             donators[msg.sender] = true;
-    //         }
-
-    //         emit Donated(msg.value, id, name, _mail, WETH);
-    //         if (L2 != address(0)){
-    //             iOVM_L1StandardBridge(L1StandardBridge).depositETHTo{value: address(this).balance}(L2,2000000,"0x");
-    //         }
-    //         return;
-    //     }
-
-    //     require(IUniswapV3Factory(v3factory).getPool(WETH, wantToken, poolFee) != address(0), "no direct pool exists");
-
-    //     address[] memory path = new address[](2);
-    //     path[0] = WETH;
-    //     path[1] = wantToken;
-    //     uint256 _maxDonationAmountInWantTokens;
-    //     (_finalDonationAmount, _maxDonationAmountInWantTokens) = getAmounts(msg.value, path[0], wantToken);
-
-    //     ISwapRouter.ExactInputSingleParams memory params =
-    //         ISwapRouter.ExactInputSingleParams({
-    //             tokenIn: path[0],
-    //             tokenOut: path[1],
-    //             fee: poolFee,
-    //             recipient: address(this),
-    //             deadline: block.timestamp + 1000,
-    //             amountIn: _finalDonationAmount,
-    //             amountOutMinimum: _maxDonationAmountInWantTokens,
-    //             sqrtPriceLimitX96: 0
-    //         });
-    //     uint _swapReturnValues =
-    //     ISwapRouter(v3router).exactInputSingle{value: _finalDonationAmount}(params);
-
-    //     if (donators[msg.sender] == false){
-    //         donators[msg.sender] = true;
-    //     }
-
-    //     currFund += _swapReturnValues;
-
-    //     if (msg.value > _finalDonationAmount) {
-    //         payable(msg.sender).transfer(msg.value - _finalDonationAmount);
-    //     }
-
-    //     emit Donated(msg.value, id, name, _mail, WETH);
-    //     if (L2 != address(0)){
-    //             iOVM_L1StandardBridge(L1StandardBridge).depositERC20To(wantToken, wantTokenL2, L2, IERC20(wantToken).balanceOf(address(this)), 2000000, "0x");
-    //         }
-    //     return;
-    // }
 
     function getMaxDonationAmount(uint256 _amountIn) internal view returns (uint256 maxDonationAmount) {
         uint256 _maxPossibleDonation = goal - currFund;
@@ -301,5 +188,67 @@ contract Campaign {
             return _amountIn;
         }
         return _maxPossibleDonation;
+    }
+     
+
+    
+
+    function synthetixIssue() external {
+        require(msg.sender == owner);
+        if (routerApprovedTokens[wantToken] != true) {
+            IERC20(wantToken).approve(address(v3router), MAX_UINT);
+            routerApprovedTokens[wantToken] = true;
+        }
+        if(wantToken != SNX){
+        ISwapRouter.ExactInputSingleParams memory params =
+            ISwapRouter.ExactInputSingleParams({
+                tokenIn: wantToken,
+                tokenOut: SNX,
+                fee: poolFee,
+                recipient: address(this),
+                deadline: block.timestamp,
+                amountIn: currFund,
+                amountOutMinimum: 0,
+                sqrtPriceLimitX96: 0
+            });
+            uint256 _swapReturnValues = ISwapRouter(v3router).exactInputSingle(params);
+        }
+        address synthetix =synthetixResolver.getAddress("Synthetix");
+        require(synthetix != address(0), "Synthetix is missing from Synthetix resolver");
+    
+        // Issue for msg.sender = address(MyContract)
+        ISynthetix(synthetix).issueMaxSynths();
+    }
+    function synthetixBurn() external {
+        require(msg.sender == owner);
+        address synthetix = synthetixResolver.getAddress("Synthetix");
+        require(synthetix != address(0), "Synthetix is missing from Synthetix resolver");
+
+        uint debt = ISynthetix(synthetix).debtBalanceOf(address(this), "sUSD");
+
+        // Burn for msg.sender = address(MyContract)
+        ISynthetix(synthetix).burnSynths(debt);
+
+        if (routerApprovedTokens[SNX] != true) {
+            IERC20(SNX).approve(address(v3router), MAX_UINT);
+            routerApprovedTokens[SNX] = true;
+        }
+        if(wantToken != SNX){
+            uint256 amount = IERC20(SNX).balanceOf(address(this));
+
+            ISwapRouter.ExactInputSingleParams memory params =
+            ISwapRouter.ExactInputSingleParams({
+                tokenIn: SNX,
+                tokenOut: wantToken,
+                fee: poolFee,
+                recipient: address(this),
+                deadline: block.timestamp,
+                amountIn: amount,
+                amountOutMinimum: 0,
+                sqrtPriceLimitX96: 0
+            });
+        uint256 _swapReturnValues = ISwapRouter(v3router).exactInputSingle(params);
+        }
+        currFund = IERC20(wantToken).balanceOf(address(this));
     }
 }
