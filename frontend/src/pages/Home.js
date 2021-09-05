@@ -1,6 +1,6 @@
 import { useFormik } from 'formik';
 import { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, Outlet} from 'react-router-dom';
 // material
 import { Container, Stack, Typography, Button, Box } from '@material-ui/core';
 import { styled } from '@material-ui/core/styles';
@@ -13,6 +13,9 @@ import {
   ProductCartWidget,
   ProductFilterSidebar
 } from '../components/_dashboard/products';
+import LogoOnlyLayout from "../layouts/LogoOnlyLayout";
+import SwapVertIcon from "@material-ui/icons/SwapVert";
+import Logo from "../components/Logo";
 
 // ----------------------------------------------------------------------
 
@@ -35,7 +38,6 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 // ----------------------------------------------------------------------
-const LS_KEY = 'login-with-metamask:auth';
 
 export default function Home(props) {
   const classes = useStyles();
@@ -52,6 +54,10 @@ export default function Home(props) {
       setOpenFilter(false);
     }
   });
+
+  console.log('koji kurac');
+
+
   const { resetForm, handleSubmit } = formik;
   const handleOpenFilter = () => {
     setOpenFilter(true);
@@ -64,18 +70,39 @@ export default function Home(props) {
     resetForm();
   };
 
+  const changeLayer = () => {
+    const layer = window.localStorage['layer']
+    window.localStorage['layer'] = layer === 'L1' ? 'L2' : 'L1'
+    console.log(window.localStorage['layer'])
+    window.location.reload();
+  }
+
   return (
     <RootStyle title="Home page | Minimal-UI">
+      <Outlet/>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+        <RouterLink to="/">
+          <Logo />
+        </RouterLink>
+        <Button
+            variant="contained"
+            color="secondary"
+            className={classes.button}
+            startIcon={<SwapVertIcon />}
+            onClick={changeLayer}
+        >Switch layer</Button>{window.localStorage['username'] === undefined ?
+          !window.localStorage['login'] && <Button variant="contained" component={RouterLink} to="/login" >
+            Login
+          </Button> :
+          !window.localStorage['login'] && <Button variant="contained" onClick={props.onLoggedOut} component={RouterLink} to="/home">
+            Logout
+          </Button>}
+      </Stack>
       <Container sx={0} >
         <Box display="flex" justifyContent="flex-end" alignItems="right">
-        {window.localStorage['username'] === undefined ?
-          <Button variant="contained" component={RouterLink} to="/login" >
-            Login
-          </Button> : <Button variant="contained" onClick={props.onLoggedOut} component={RouterLink} to="/home">
-          Logout
-        </Button>}
+
         </Box>
-        <Stack direction="row" alignItems="center" justifyContent="center">
+        <Stack direction="row" alignItems="left" justifyContent="center">
           <Typography variant="h2" align="center">
             Support children
           </Typography>

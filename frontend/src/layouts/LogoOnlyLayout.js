@@ -29,7 +29,7 @@ const useStyles = makeStyles((theme) => ({
 
 // ----------------------------------------------------------------------
 
-export default function LogoOnlyLayout() {
+export default function LogoOnlyLayout(props) {
   const classes = useStyles();
   const changeLayer = () => {
     if (window.localStorage["layer"] == "L1") {
@@ -40,7 +40,6 @@ export default function LogoOnlyLayout() {
     console.log(window.localStorage["layer"]);
   }
   return (
-    <>
       <HeaderStyle>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
         <RouterLink to="/">
@@ -52,10 +51,14 @@ export default function LogoOnlyLayout() {
             className={classes.button}
             startIcon={<SwapVertIcon />}
             onClick={changeLayer}
-          >Switch layer</Button>
+          >Switch layer</Button>{window.localStorage['username'] === undefined ?
+            !window.localStorage['login'] && <Button variant="contained" component={RouterLink} to="/login" >
+              Login
+            </Button> :
+            !window.localStorage['login'] && <Button variant="contained" onClick={props.onLoggedOut} component={RouterLink} to="/home">
+              Logout
+            </Button>}
         </Stack>
       </HeaderStyle>
-      <Outlet />
-    </>
   );
 }

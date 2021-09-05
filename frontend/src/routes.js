@@ -1,4 +1,4 @@
-import { Navigate, useRoutes } from 'react-router-dom';
+import {Navigate, Outlet, useRoutes} from 'react-router-dom';
 import { useState } from 'react';
 // layouts
 import DashboardLayout from './layouts/dashboard';
@@ -51,6 +51,16 @@ export default function Router(props) {
     localStorage.removeItem('jwt');
     setState(undefined);
   };
+
+  const switchLayer = () => {
+    if (window.localStorage["layer"] == "L1") {
+      window.localStorage["layer"] = "L2"
+    } else {
+      window.localStorage["layer"] = "L1"
+    }
+  }
+
+
   return useRoutes([
     {
       path: '/dashboard',
@@ -66,7 +76,7 @@ export default function Router(props) {
     },
     {
       path: '/',
-      element: <LogoOnlyLayout />,
+      element: <Outlet/>,
       children: [
         {
           path: 'login',

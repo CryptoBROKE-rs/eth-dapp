@@ -40,15 +40,18 @@ AuthLayout.propTypes = {
   children: PropTypes.node
 };
 
+const changeLayer = () => {
+  if (window.localStorage["layer"] == "L1") {
+    window.localStorage["layer"] = "L2"
+  } else {
+    window.localStorage["layer"] = "L1"
+  }
+}
+
+
 export default function AuthLayout({ children }) {
   const classes = useStyles();
-  const changeLayer = () => {
-    if (window.localStorage["layer"] == "L1") {
-      window.localStorage["layer"] = "L2"
-    } else {
-      window.localStorage["layer"] = "L1"
-    }
-  }
+
   return (
     <HeaderStyle>
       <RouterLink to="/">
@@ -62,7 +65,7 @@ export default function AuthLayout({ children }) {
             justifyContent="flex-end"
             align = "right"
             onClick={changeLayer}
-          >Switch layer</Button>
+          >Popuši mi kurac</Button>
         </Stack>
       </RouterLink>
 
