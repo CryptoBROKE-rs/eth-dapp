@@ -860,6 +860,37 @@ class Home extends Component {
   //     console.log(goal._hex[0]);
   //     var tx = await orgContract.addCampaign(name, tokens, description, stamp, address);
   //   }
+
+  async addMember(layer) {
+    var params = layer == 'L1' ? this.l1 : this.l2;
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    var address = await signer.getAddress();
+
+
+    const contractOrg = new ethers.Contract(
+        params.orgAddress,
+        params.orgAbi,
+        params.provider
+    );
+
+    const orgContract = contractOrg.connect(signer);
+    var member = await contractOrg.members(address);
+
+
+
+    if (!member) {
+      var gasLimit = layer == 'L1' ? 12_500_000 : await orgContract.estimateGas.addMember(address);
+      var gasPrice = await provider.getGasPrice();
+      var parameters = {
+        gasPrice: gasPrice,
+        gasLimit: gasLimit
+      };
+
+      var tx = await orgContract.addMember(address, parameters);
+    }
+  }
+
   async addCampaign(
     name,
     goal,
@@ -872,7 +903,6 @@ class Home extends Component {
     L2Address,
     layer
   ) {
-    require('dotenv').config();
     console.log(date);
     console.log(time);
     var datetime = date.setHours(time.getHours(), time.getMinutes(), 0, 0);

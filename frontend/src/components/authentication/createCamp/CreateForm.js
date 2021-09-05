@@ -132,6 +132,7 @@ export default function CreateForm() {
       const added = await client.add(file);
       const url = `${added.path}`;
       if (layer === "L1") {
+        console.log('kara')
         await switchETHChain(42);
         OldHome.addCampaign(values.campName, goal, values.campDesc, selectedDate, selectedTime, l1tokensDict[currency], url, "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "L1");
       } else if (layer === "L2") {

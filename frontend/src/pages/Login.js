@@ -25,6 +25,8 @@ import Organisation from '../abis/Organisation.json';
 import { useEffect, useState } from 'react';
 import { RegisterForm } from '../components/authentication/register';
 
+import Home from '../OldHome';
+
 // ----------------------------------------------------------------------
 const Web3 = require('web3');
 require('dotenv').config();
@@ -71,26 +73,31 @@ export default function Login(props) {
   const [usersTemp, setUsersTemp] = useState();
 
   const onLoggedIn = async (auth) => {
-    const orgAbi = Organisation.abi;
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-    var address = await signer.getAddress();
-    const contractOrg = new ethers.Contract(
-      process.env.REACT_APP_ORGANISATION_CONTRACT_ADDRESS_L1,
-      orgAbi,
-      provider
-    );
-    const orgContract = contractOrg.connect(signer);
-    var member = await orgContract.members(address);
-    if (member == false) {
-      var gasPrice = await provider.getGasPrice();
-      var gasLimit = await orgContract.estimateGas.addMember(address);
-      var parameters = {
-        gasPrice: gasPrice,
-        gasLimit: gasLimit
-      };
-      var tx = await orgContract.addMember(address, parameters);
-    }
+    // const orgAbi = Organisation.abi;
+    // const provider = new ethers.providers.Web3Provider(window.ethereum);
+    // const signer = provider.getSigner();
+    // var address = await signer.getAddress();
+    // const contractOrg = new ethers.Contract(
+    //   process.env.REACT_APP_ORGANISATION_CONTRACT_ADDRESS_L1,
+    //   orgAbi,
+    //   provider
+    // );
+    // const orgContract = contractOrg.connect(signer);
+    // var member = await orgContract.members(address);
+    // if (member == false) {
+    //   var gasPrice = await provider.getGasPrice();
+    //   var gasLimit = await orgContract.estimateGas.addMember(address);
+    //   var parameters = {
+    //     gasPrice: gasPrice,
+    //     gasLimit: gasLimit
+    //   };
+    //   var tx = await orgContract.addMember(address, parameters);
+    // }
+
+    const home = new Home();
+    await home.addMember('L1')
+    await home.addMember('L2')
+
     props.onLoggedIn(auth);
 
     return 0;
