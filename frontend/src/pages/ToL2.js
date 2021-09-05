@@ -100,25 +100,71 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function ToLayer2(currencies) {
-  const [currency, setCurrency] = React.useState('');
+export default function ToLayer2() {
+  const [currencyL, setCurrencyL] = React.useState('ETH');
+  const [currency, setCurrency] = React.useState('ETH');
   const [amount, setAmount] = React.useState('');
   const classes = useStyles();
   const [value, setValue] = React.useState(0);
 
+  const l1tokensDict = {
+    ETH: '0x0000000000000000000000000000000000000000',
+    DAI: '0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa',
+    EURT: '0x50EB44e3a68f1963278b4c74c6c343508d31704C',
+    LINK: '0xa36085F69e2889c224210F603D836748e7dC0088',
+    RAI: '0x76b06a2f6dF6f0514e7BEC52a9AfB3f603b477CD',
+    SNX: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
+    UNI: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
+    USDC: '0x50dC5200082d37d5dd34B4b0691f36e3632fE1A8',
+    USDT: '0xe0BB0D3DE8c10976511e5030cA403dBf4c25165B',
+    WBTC: '0x68f180fcCe6836688e9084f035309E29Bf0A2095'
+  };
+
+  const l2tokensDict = {
+    ETH: '0x4200000000000000000000000000000000000006',
+    DAI: '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
+    EURT: '0x65e44970ebFe42f98F83c4B67062DE94B9f3Da7D',
+    LINK: '0x4911b761993b9c8c0d14Ba2d86902AF6B0074F5B',
+    RAI: '0x743224e4822710a3e40d754244f3e0f1db2e5d8f',
+    SNX: '0x0064A673267696049938AA47595dD0B3C2e705A1',
+    UNI: '0x5e31B81eaFba4b9371e77F34d6f3DA8091C3F2a0',
+    USDC: '0x4e62882864fB8CE54AFfcAf8D899A286762B011B',
+    USDT: '0x7F5c764cBc14f9669B88837ca1490cCa17c31607',
+    WBTC: '0x2382a8f65b9120E554d1836a504808aC864E169d',
+    sUSD: '0xaA5068dC2B3AADE533d3e52C6eeaadC6a8154c57'
+  };
+
   const handleChange = (event, newValue) => {
     setValue(newValue);
+  };
+  const handleCurrencyL = (event) => {
+    setCurrencyL(event.target.value);
+  };
+  const handleCurrency = (event) => {
+    setCurrency(event.target.value);
   };
   const oldHome = new Home();
   const [withdraw, setWithdraw] = React.useState('optimistic');
   const onSubmit = () => {
     console.log(amount);
-    oldHome.depositL2(amount);
+    oldHome.depositL2(amount, currencyL);
   };
   const handleWithdraw = () => {
     console.log(amount);
-    oldHome.withdrawL2(amount);
+    oldHome.withdrawL2(amount, currency);
   };
+  var currenciesL1 = [];
+  var currenciesL2 = [];
+  for (var [label, val] of Object.entries(l1tokensDict)) {
+    currenciesL1.push({ label: label, value: val });
+  }
+  for (var [label, val] of Object.entries(l2tokensDict)) {
+    currenciesL2.push({ label: label, value: val });
+  }
+  console.log(currenciesL1);
+  console.log(currenciesL2);
+  var currs = window.localStorage['layer'] == 'L1' ? currenciesL1 : currenciesL2;
+
   return (
     <RootStyle title="Register | Minimal-UI">
       <Container>
@@ -127,7 +173,7 @@ export default function ToLayer2(currencies) {
             <AppBar position="static" color="default">
               <Tabs
                 variant="fullWidth"
-                value={value}
+                value={val}
                 onChange={handleChange}
                 aria-label="nav tabs example"
               >
@@ -155,18 +201,24 @@ export default function ToLayer2(currencies) {
                   id="standard-select-currency-native"
                   select
                   label="Native select"
-                  value={currency}
-                  onChange={handleChange}
+                  value={currencyL}
+                  onChange={handleCurrencyL}
                   SelectProps={{
                     native: true
                   }}
                   helperText="Please select your currency"
-                ></TextField>
+                >
+                  {currenciesL1.map((option) => (
+                    <option key={option.value} value={option.label}>
+                      {option.label}
+                    </option>
+                  ))}
+                </TextField>
               </Stack>
 
               <Grid container direction="row" alignItems="center" xs={15}>
                 <Grid item>
-                  <Icon icon={ArrowDownwardIcon} width={30} height={32} display="block"/>
+                  <Icon icon={ArrowDownwardIcon} width={30} height={32} display="block" />
                 </Grid>
               </Grid>
 
@@ -188,13 +240,19 @@ export default function ToLayer2(currencies) {
                   id="standard-select-currency-native"
                   select
                   label="Native select"
-                  value={currency}
-                  onChange={handleChange}
+                  value={currencyL}
+                  onChange={handleCurrencyL}
                   SelectProps={{
                     native: true
                   }}
                   helperText="Please select your currency"
-                ></TextField>
+                >
+                  {currenciesL2.map((option) => (
+                    <option key={option.value} value={option.label}>
+                      {option.label}
+                    </option>
+                  ))}
+                </TextField>
               </Stack>
               <Button fullWidth size="large" type="submit" variant="contained" onClick={onSubmit}>
                 Approve
@@ -219,19 +277,25 @@ export default function ToLayer2(currencies) {
                   select
                   label="Native select"
                   value={currency}
-                  onChange={handleChange}
+                  onChange={handleCurrency}
                   SelectProps={{
                     native: true
                   }}
                   helperText="Please select your currency"
-                ></TextField>
+                >
+                  {currs.map((option) => (
+                    <option key={option.value} value={option.label}>
+                      {option.label}
+                    </option>
+                  ))}
+                </TextField>
               </Stack>
               <FormControl component="fieldset">
                 <FormLabel component="legend">Transation options</FormLabel>
                 <RadioGroup
                   aria-label="transaction-options"
                   name="option1"
-                  value={value}
+                  value={val}
                   onChange={(e) => setWithdraw(e.target.value)}
                 >
                   <FormControlLabel value="optimistic" control={<Radio />} label="Optimistic" />

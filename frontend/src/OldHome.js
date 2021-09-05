@@ -459,7 +459,7 @@ class Home extends Component {
       var uri = await camp.URI();
       var currToken = await camp.wantToken();
       for (var [key, label] of Object.entries(params.tokensDict)) {
-        if (label == currToken) {
+        if (label.toLowerCase() == currToken.toLowerCase()) {
           var currency = key;
           break;
         } else {
@@ -684,13 +684,15 @@ class Home extends Component {
         return 0;
       });
   }
-  async depositL2(amount) {
+  async depositL2(amount, token) {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
     const l2RpcProvider = this.l2.provider;
     const l1MessengerAddress = '0x4361d0F75A0186C05f971c566dC6bEa5957483fD';
     // L2 messenger address is always the same.
     const l2MessengerAddress = '0x4200000000000000000000000000000000000007';
+    const tokenL1 = this.l1.tokensDict[token];
+    const tokenL2 = this.l2.tokensDict[token];
 
     // Tool that helps watches and waits for messages to be relayed between L1 and L2.
     const watcher = new Watcher({
@@ -710,33 +712,67 @@ class Home extends Component {
     );
     L1StandardBridge = L1StandardBridge.connect(signer);
     console.log('Depositing tokens into L2 ...');
-    amount = ethers.utils.parseEther(amount.toString());
-    const tx2 = await L1StandardBridge.depositETH(2000000, '0x', { value: amount });
-    const recep = await tx2.wait();
+    var tx2 = '';
+    if (token == 'ETH') {
+      amount = ethers.utils.parseEther(amount.toString());
+      tx2 = await L1StandardBridge.depositETH(2000000, '0x', { value: amount });
+      const recep = await tx2.wait();
+    } else {
+      var tokenContract = new ethers.Contract(tokenL1, this.genericERC20Abi, this.l1.provider);
+      var decimals = await tokenContract.decimals();
+      tokenContract = tokenContract.connect(signer);
+      amount = ethers.utils.parseUnits(amount, decimals);
+      var gasPrice = this.l1.provider.getGasPrice();
+      var parameters = {
+        gasLimit: 125000,
+        gasPrice: gasPrice
+      };
+      // var approval = await tokenContract.approve(
+      //   '0x22F24361D548e5FaAfb36d1437839f080363982B',
+      //   amount,
+      //   parameters
+      // );
+      // await approval.wait();
+      // console.log('yes');
+      tx2 = await L1StandardBridge.depositERC20(
+        tokenL1.toLowerCase(),
+        tokenL2.toLowerCase(),
+        amount,
+        2000000,
+        '0x'
+      );
+      const recep = await tx2.wait();
+    }
     // Wait for the message to be relayed to L2.
     console.log('Waiting for deposit to be relayed to L2...');
     const [msgHash1] = await watcher.getMessageHashesFromL1Tx(tx2.hash);
     var address = await signer.getAddress();
     const receipt = await watcher.getL2TransactionReceipt(msgHash1, true);
     console.log('receipt', receipt);
-    var L2_ERC20 = new ethers.Contract(
-      '0x4200000000000000000000000000000000000006',
-      this.genericERC20Abi,
-      l2RpcProvider
-    );
+    if (token == 'ETH') {
+      var L2_ERC20 = new ethers.Contract(
+        '0x4200000000000000000000000000000000000006',
+        this.genericERC20Abi,
+        l2RpcProvider
+      );
+    } else {
+      var L2_ERC20 = new ethers.Contract(tokenL2, this.genericERC20Abi, l2RpcProvider);
+    }
     // Log some balances to see that it worked!
     console.log(`Balance on L1: ${await provider.getBalance(address)}`); // 0
     console.log(`Balance on L2: ${await L2_ERC20.balanceOf(address)}`); // 1234
 
     //
   }
-  async withdrawL2(amount) {
+  async withdrawL2(amount, token) {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
     const l2RpcProvider = this.l2.provider;
     const l1MessengerAddress = '0x4361d0F75A0186C05f971c566dC6bEa5957483fD';
     // L2 messenger address is always the same.
     const l2MessengerAddress = '0x4200000000000000000000000000000000000007';
+    const tokenL1 = this.l1.tokensDict[token];
+    const tokenL2 = this.l2.tokensDict[token];
 
     // Tool that helps watches and waits for messages to be relayed between L1 and L2.
     const watcher = new Watcher({
@@ -756,11 +792,15 @@ class Home extends Component {
     );
     L2StandardBridge = L2StandardBridge.connect(signer);
 
-    var L2_ERC20 = new ethers.Contract(
-      '0x4200000000000000000000000000000000000006',
-      this.genericERC20Abi,
-      l2RpcProvider
-    );
+    if (token == 'ETH') {
+      var L2_ERC20 = new ethers.Contract(
+        '0x4200000000000000000000000000000000000006',
+        this.genericERC20Abi,
+        l2RpcProvider
+      );
+    } else {
+      var L2_ERC20 = new ethers.Contract(tokenL2, this.genericERC20Abi, l2RpcProvider);
+    }
     console.log(`Withdrawing tokens back to L1 ...`);
     amount = ethers.utils.parseEther(amount);
     console.log(amount);
@@ -793,6 +833,7 @@ class Home extends Component {
     console.log(`Balance on L1: ${await provider.getBalanceOf(address)}`); // 1234
     console.log(`Balance on L2: ${await L2_ERC20.balanceOf(address)}`); // 0
   }
+
   async sendMail(campaignId, curr_fund, goal, name, mails) {
     var sent = [];
     campaignId = campaignId.toString();
