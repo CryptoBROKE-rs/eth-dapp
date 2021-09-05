@@ -16,7 +16,6 @@ const color = '#d2d2d2';
 const pinataSDK = require('@pinata/sdk');
 const web3 = require('web3');
 const { Watcher } = require('@eth-optimism/core-utils');
-require('dotenv').config();
 
 class Home extends Component {
   constructor(props) {
@@ -950,7 +949,6 @@ class Home extends Component {
       var receipt = await tx.wait();
       var campaignId = await contractOrg.campaignCounter();
       var campAddress = await contractOrg.campaigns(campaignId);
-      window.location.replace('http://localhost:3000');
       return campAddress;
     } else {
       const gasEstimate = await orgContract.estimateGas.addCampaign(
@@ -984,7 +982,6 @@ class Home extends Component {
       var receipt = await tx.wait();
       var campaignId = await contractOrg.campaignCounter();
       var campAddress = await contractOrg.campaigns(campaignId);
-      window.location.replace('http://localhost:3000');
       return campAddress;
     }
     // const gasEstimate = await orgContract.estimateGas.addCampaign(

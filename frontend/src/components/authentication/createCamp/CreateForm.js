@@ -132,6 +132,7 @@ export default function CreateForm() {
       };
       const added = await client.add(file);
       const url = `${added.path}`;
+      console.log(layer)
       if (layer == 'L1') {
         await switchETHChain(42);
         OldHome.addCampaign(
@@ -162,8 +163,9 @@ export default function CreateForm() {
           'L2'
         );
       } else {
+        console.log('oba')
         await switchETHChain(69);
-        var L2add = await OldHome.addCampaign(
+        const L2add = await OldHome.addCampaign(
           values.campName,
           goal,
           values.campDesc,
@@ -175,8 +177,10 @@ export default function CreateForm() {
           '0x0000000000000000000000000000000000000000',
           'L2'
         );
+
+        console.log('prošla dvica', L2add)
         await switchETHChain(42);
-        OldHome.addCampaign(
+        await OldHome.addCampaign(
           values.campName,
           goal,
           values.campDesc,
@@ -188,8 +192,16 @@ export default function CreateForm() {
           L2add,
           'L1'
         );
-      }
-      //navigate('/dashboard', { replace: true });
+
+
+
+
+        for (var i = 0; i < 20000; i++) {
+          console.log('Svi smo mi pederi, samo je pitanje cijene!');
+        }
+
+
+      }//navigate('/dashboard', { replace: true });
     }
   });
 
