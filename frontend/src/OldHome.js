@@ -902,11 +902,9 @@ class Home extends Component {
     var datetime = date.setHours(time.getHours(), time.getMinutes(), 0, 0);
     console.log(datetime);
     var stamp = Math.floor(datetime / 1000);
-    if (layer === 'L1') {
-      var params = this.l1;
-    } else {
-      var params = this.l2;
-    }
+
+    var params = layer === 'L1' ? this.l1 : this.l2;
+
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
     var address = await signer.getAddress();

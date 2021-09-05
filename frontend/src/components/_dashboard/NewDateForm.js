@@ -11,6 +11,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import { Stack, TextField, Button, CircularProgress } from '@material-ui/core';
 import { LoadingButton } from '@material-ui/lab';
 import Home from '../../OldHome';
+const ethers = require('ethers');
 
 export default function FormDialog2({ id }) {
   const [open, setOpen] = React.useState(false);
@@ -21,6 +22,12 @@ export default function FormDialog2({ id }) {
   const handleClickOpen = () => {
     setOpen(true);
   };
+
+  var layer = window.localStorage['layer'];
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const signer = provider.getSigner();
+
+
   var OldHome = new Home();
   const handleClose = () => {
     setOpen(false);
@@ -34,12 +41,61 @@ export default function FormDialog2({ id }) {
     });
   };
 
+  var params = layer === 'L1' ? OldHome.l1 : OldHome.l2;
+
+
+  const handleStake = async () => {
+    const contractOrg = new ethers.Contract(params.orgAddress, params.orgAbi, params.provider);
+    const campAddress = await contractOrg.campaigns(parseInt(id, 10));
+    console.log(campAddress)
+    const camp = new ethers.Contract(campAddress, params.campAbi, params.provider).connect(signer);
+    const gasPrice = await provider.getGasPrice();
+    const gasEstimate = camp.estimateGas.synthetixIssue();
+
+    console.log(gasEstimate);
+    console.log(gasPrice);
+
+
+    const parameters = {
+      gasLimit: gasEstimate,
+      gasPrice: gasPrice
+    };
+
+    var tx = camp.synthetixIssue(parameters);
+
+  }
+  const handleUnstake = async () => {
+    const contractOrg = new ethers.Contract(params.orgAddress, params.orgAbi, params.provider);
+    const campAddress = await contractOrg.campaigns(parseInt(id, 10));
+    console.log(campAddress)
+    const camp = new ethers.Contract(campAddress, params.campAbi, params.provider).connect(signer);
+    const gasPrice = await provider.getGasPrice();
+    const gasEstimate = camp.estimateGas.synthetixBurn();
+
+    console.log(gasEstimate);
+    console.log(gasPrice);
+
+    const parameters = {
+      gasLimit: gasEstimate,
+      gasPrice: gasPrice
+    };
+
+    var tx = camp.synthetixBurn(parameters);
+
+  }
+
 
   return (
     <div>
       <Button fullWidth size="large" type="submit" variant="contained" onClick={handleClickOpen}>
         Update
       </Button>
+      {window.localStorage['layer'] === 'L2' && <div><br/><br/><Button fullWidth size="large" type="submit" variant="contained" color="secondary" onClick={handleStake}>
+        Stake
+      </Button></div>}
+      {window.localStorage['layer'] === 'L2' && <div><br/><Button fullWidth size="large" type="submit" variant="contained" color="secondary" onClick={handleUnstake}>
+        Unstake
+      </Button></div>}
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
         <DialogTitle id="form-dialog-title">Change End Date</DialogTitle>
         <DialogContent>
@@ -80,6 +136,7 @@ export default function FormDialog2({ id }) {
           <Button onClick={handleDateChange} color="primary" disabled={isSubmitting}>
             Update
           </Button>
+
           {isSubmitting && <CircularProgress />}
           <Button onClick={handleClose} color="primary">
             Cancel
