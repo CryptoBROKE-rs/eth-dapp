@@ -13,7 +13,7 @@ import { fCurrency } from '../../../utils/formatNumber';
 import Label from '../../Label';
 import ColorPreview from '../../ColorPreview';
 import FormDialog from '../../donate/DonationForm';
-import FormDialog2 from '../../_dashboard/NewDateForm.js'
+import FormDialog2 from '../../_dashboard/NewDateForm.js';
 import { clamp } from 'lodash-es';
 
 // ----------------------------------------------------------------------
@@ -58,9 +58,7 @@ LinearProgressWithLabel.propTypes = {
 };
 
 export default function ShopProductCard({ camp, currencies, owner }) {
-  console.log("!!");
   const isOwner = owner;
-  console.log(isOwner);
   const { name, id, currFund, goal, description, endStamp, daysLeft, color, uri, currency } = camp;
   const classes = useStyles();
   const [progress, setProgress] = React.useState(0);
@@ -80,10 +78,7 @@ export default function ShopProductCard({ camp, currencies, owner }) {
   return (
     <Card>
       <Box sx={{ pt: '100%', position: 'relative' }}>
-        <ProductImgStyle
-          alt={name}
-          src= {"https://ipfs.infura.io/ipfs/" + uri}
-        />
+        <ProductImgStyle alt={name} src={'https://ipfs.infura.io/ipfs/' + uri} />
       </Box>
 
       <Stack spacing={2} sx={{ p: 3 }}>
@@ -99,7 +94,7 @@ export default function ShopProductCard({ camp, currencies, owner }) {
           goal:
           {goal} {currency}
         </Typography>
-        { !owner ? <FormDialog id={id} currencies={currencies} /> : <FormDialog2 id={id} />}
+        {!owner ? <FormDialog id={id} currencies={currencies} /> : <FormDialog2 id={id} />}
         <Typography variant="subtitle2" align="center" noWrap>
           End date: {endStamp}
         </Typography>
