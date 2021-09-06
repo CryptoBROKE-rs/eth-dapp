@@ -51,11 +51,9 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
   const classes = useStyles();
   const { pathname } = useLocation();
   const changeLayer = () => {
-    if (window.localStorage["layer"] == "L1") {
-      window.localStorage["layer"] = "L2"
-    } else {
-      window.localStorage["layer"] = "L1"
-    }
+    const layer = window.localStorage['layer']
+    window.localStorage['layer'] = layer === 'L1' ? 'L2' : 'L1'
+    window.location.reload();
   }
   useEffect(() => {
     if (isOpenSidebar) {
