@@ -17,28 +17,28 @@ import { fDateTime } from '../../../utils/formatTime';
 
 const TIMELINES = [
   {
-    title: '1983, orders, $4220',
-    time: faker.date.past(),
+    title: 'bpox196, donates, 4220 LINK',
+    time: faker.date.recent(),
     type: 'order1'
   },
   {
-    title: '12 Invoices have been paid',
-    time: faker.date.past(),
+    title: 'newuser12, creates new campaign',
+    time: faker.date.recent(),
     type: 'order2'
   },
   {
-    title: 'Order #37745 from September',
-    time: faker.date.past(),
+    title: '3327, donates, 1862 ETH',
+    time: faker.date.recent(),
     type: 'order3'
   },
   {
-    title: 'New order placed #XF-2356',
-    time: faker.date.past(),
+    title: 'cryptoBROKE.rs, creates new campaign',
+    time: faker.date.recent(),
     type: 'order4'
   },
   {
-    title: 'New order placed #XF-2346',
-    time: faker.date.past(),
+    title: 'cryptoBROKE.rs, donates, 1999 SNX',
+    time: faker.date.recent(),
     type: 'order5'
   }
 ];
@@ -86,7 +86,7 @@ export default function AppOrderTimeline() {
         }
       }}
     >
-      <CardHeader title="Order Timeline" />
+      <CardHeader title="Support Children Timeline" />
       <CardContent>
         <Timeline>
           {TIMELINES.map((item, index) => (

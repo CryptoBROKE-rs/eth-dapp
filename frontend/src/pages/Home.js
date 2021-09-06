@@ -16,6 +16,7 @@ import {
 import LogoOnlyLayout from "../layouts/LogoOnlyLayout";
 import SwapVertIcon from "@material-ui/icons/SwapVert";
 import Logo from "../components/Logo";
+import Item from "../components/Item";
 
 // ----------------------------------------------------------------------
 
@@ -74,7 +75,7 @@ export default function Home(props) {
   }
 
   return (
-    <RootStyle title="Home page | Minimal-UI" paddingTop>
+    <RootStyle title="Home page | Support children" paddingTop>
       <Outlet/>
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
         <RouterLink to="/">

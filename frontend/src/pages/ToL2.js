@@ -501,7 +501,7 @@ export default function ToLayer2() {
   var currs = window.localStorage['layer'] == 'L1' ? currenciesL1 : currenciesL2;
   const theme = useTheme();
   return (
-    <RootStyle title="Register | Minimal-UI">
+    <RootStyle title="Support Children">
       <Container>
         <Stack>{isAlert && <Alert severity="info">{alertMessage}</Alert>}</Stack>
         <br />

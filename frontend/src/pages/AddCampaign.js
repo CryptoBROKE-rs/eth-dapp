@@ -40,7 +40,7 @@ const ContentStyle = styled('div')(({ theme }) => ({
 
 export default function AddCampaign() {
   return (
-    <RootStyle title="Register | Minimal-UI">
+    <RootStyle title="Support Children">
       <Container>
         <ContentStyle>
           <Box sx={{ mb: 5 }}>

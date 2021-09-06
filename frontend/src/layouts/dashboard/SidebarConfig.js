@@ -1,7 +1,7 @@
 import { Icon } from '@iconify/react';
 import pieChart2Fill from '@iconify/icons-eva/pie-chart-2-fill';
 import peopleFill from '@iconify/icons-eva/people-fill';
-import personAddFill from '@iconify/icons-eva/person-add-fill';
+import personAddFill from '@iconify/icons-ant-design/carry-out-fill';
 import alertTriangleFill from '@iconify/icons-eva/alert-triangle-fill';
 import SwapVertIcon from '@material-ui/icons/SwapVert';
 
@@ -15,21 +15,11 @@ const sidebarConfig = [
     path: '/dashboard/app',
     icon: getIcon(pieChart2Fill)
   },
-  // {
-  //   title: 'user',
-  //   path: '/dashboard/user',
-  //   icon: getIcon(peopleFill)
-  // },
   {
     title: 'Create campaign',
     path: '/dashboard/newCampaign',
     icon: getIcon(personAddFill)
   },
-  // {
-  //   title: 'Not found',
-  //   path: '/404',
-  //   icon: getIcon(alertTriangleFill)
-  // },
   { title: 'Layer 2 swapper', path: '/dashboard/Layer2', icon: <SwapVertIcon /> }
 ];
 
