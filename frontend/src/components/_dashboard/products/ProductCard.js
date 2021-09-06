@@ -15,6 +15,7 @@ import ColorPreview from '../../ColorPreview';
 import FormDialog from '../../donate/DonationForm';
 import FormDialog2 from '../../_dashboard/NewDateForm.js';
 import { clamp } from 'lodash-es';
+import {useTheme} from "@emotion/react";
 
 // ----------------------------------------------------------------------
 
@@ -62,6 +63,7 @@ export default function ShopProductCard({ camp, currencies, owner }) {
   const { name, id, currFund, goal, description, endStamp, daysLeft, color, uri, currency } = camp;
   const classes = useStyles();
   const [progress, setProgress] = React.useState(0);
+  const theme = useTheme();
   React.useEffect(() => {
     setProgress(parseFloat(100 * (currFund / goal)).toFixed(2));
   }, [currFund]);
@@ -76,7 +78,7 @@ export default function ShopProductCard({ camp, currencies, owner }) {
   // }, []);
 
   return (
-    <Card style={window.localStorage['layer'] === 'L1' ? {backgroundColor: '#ffffff'} : {backgroundColor: '#222222'}}>
+    <Card style={{backgroundColor: theme.palette.background.neutral}}>
       <Box sx={{ pt: '100%', position: 'relative' }}>
         <ProductImgStyle alt={name} src={'https://ipfs.infura.io/ipfs/' + uri} />
       </Box>
