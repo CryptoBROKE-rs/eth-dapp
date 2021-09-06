@@ -72,23 +72,20 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
       }}
     >
       <Box sx={{ px: 2.5, py: 3 }}>
-        <Box component={RouterLink} to="/home" sx={{ display: 'inline-flex' }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-        <Logo />
-        <Button
-            variant="contained"
-            color="secondary"
-            className={classes.button}
-            startIcon={<SwapVertIcon />}
-            justifyContent="flex-end"
-            align = "right"
-            onClick={changeLayer}
-          >Switch layer</Button>
-        </Stack>
-        </Box>
-      </Box>
+        <Stack direction="column" alignItems="center" justifyContent="space-between" mb={5}>
+            <Box component={RouterLink} to="/home" sx={{ display: 'inline-flex' }}>
+            <Logo />
+            </Box>
+            <Button
+                variant="contained"
+                color="secondary"
+                className={classes.button}
+                startIcon={<SwapVertIcon />}
+                onClick={changeLayer}
+            >Switch layer</Button>
 
-      <Box sx={{ mb: 5, mx: 2.5 }}>
+
+        </Stack>
         <Link underline="none" component={RouterLink} to="#">
           <AccountStyle>
             <Avatar src={account.photoURL} alt="photoURL" />
@@ -102,9 +99,16 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
             </Box>
           </AccountStyle>
         </Link>
+        <br/>
+        <br/>
+        <NavSection navConfig={sidebarConfig} />
       </Box>
 
-      <NavSection navConfig={sidebarConfig} />
+      <Box sx={{ mb: 5, mx: 2.5 }}>
+
+      </Box>
+
+
     </Scrollbar>
   );
 
