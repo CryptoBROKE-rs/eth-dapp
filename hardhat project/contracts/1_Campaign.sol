@@ -149,7 +149,6 @@ contract Campaign {
                 sqrtPriceLimitX96: 0
             });
             _swapReturnValues = ISwapRouter(v3router).exactInputSingle(params);
-            IWETH(WETH).withdraw(_swapReturnValues);
             if (L2 != address(0)){
                 iOVM_L1StandardBridge(L1StandardBridge).depositETHTo{value: address(this).balance}(L2,2000000,"0x");
             }
