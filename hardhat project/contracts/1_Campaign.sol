@@ -12,7 +12,11 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import {UniswapV2Library} from "@uniswap/v2-periphery/contracts/libraries/UniswapV2Library.sol";
 
 // SPDX-License-Identifier: MIT
-
+interface IWETH {
+     function deposit() external payable;
+     function transfer(address to, uint value) external returns (bool);
+     function withdraw(uint) external;
+ }
 contract Campaign {
     
     using SafeMath for uint;
@@ -44,13 +48,13 @@ contract Campaign {
     address public L1StandardBridge = 0x22F24361D548e5FaAfb36d1437839f080363982B;
     uint24 public constant poolFee = 3000;
 
-    constructor(uint _id, string memory _name, uint _goal, string memory _description, uint _endTimeStamp, address _wantToken, string memory _uri, address _l2Address, address _wantTokenL2){
+    constructor(uint _id, string memory _name, uint _goal, string memory _description, uint _endTimeStamp, address _wantToken, string memory _uri, address _l2Address, address _wantTokenL2, address payable _beneficiary){
         id = _id;
         name = _name;
         currFund = 0;
         goal = _goal;
         description = _description;
-        owner = msg.sender;
+        owner = _beneficiary;
         endTimeStamp = _endTimeStamp;
         wantToken = _wantToken;
         URI = _uri;
@@ -90,7 +94,7 @@ contract Campaign {
     }
     
     function donate(string memory _mail, address _donorToken, uint256 _amountIn) public payable returns(bool sufficient) {
-        //uint256 balance = IERC20(0x4200000000000000000000000000000000000006).balanceOf(msg.sender);
+
         require(IERC20(_donorToken).balanceOf(msg.sender) >= _amountIn, "Campaign::donate: Insuficient funds");
         require(endTimeStamp > block.timestamp, "Campaign::donate: This campaign has already finished");
         //require(currFund + _amountIn <= goal, "Campaign::donate: Hard cap reached");
@@ -109,7 +113,7 @@ contract Campaign {
             _wantToken = WETH; // no direct pairs to eth in uniswap v2
         }
         require(
-            IUniswapV3Factory(v3factory).getPool(_donorToken, wantToken, poolFee) != address(0),
+            IUniswapV3Factory(v3factory).getPool(_donorToken, _wantToken, poolFee) != address(0),
             "SupportChildren::donate: No direct pool exists"
         );
 
@@ -118,7 +122,6 @@ contract Campaign {
         path[1] = _wantToken;
         uint256 _amountInWantTokens;
         uint256 _maxDonationAmountInWantTokens;
-        // (_finalDonationAmount, _maxDonationAmountInWantTokens) = getAmounts(_amountIn, _donorToken, wantToken);
 
         IERC20(_donorToken).transferFrom(
             msg.sender,
@@ -146,6 +149,7 @@ contract Campaign {
                 sqrtPriceLimitX96: 0
             });
             _swapReturnValues = ISwapRouter(v3router).exactInputSingle(params);
+            IWETH(WETH).withdraw(_swapReturnValues);
             if (L2 != address(0)){
                 iOVM_L1StandardBridge(L1StandardBridge).depositETHTo{value: address(this).balance}(L2,2000000,"0x");
             }
@@ -219,8 +223,6 @@ contract Campaign {
     }
     
     function donateETH(string memory _mail) external payable {
-        //uint256 balance = IERC20(0x4200000000000000000000000000000000000006).balanceOf(msg.sender);
-        //require(msg.sender.balance >= _amountIn, "Campaign::donate: Insuficient funds");
         require(endTimeStamp > block.timestamp, "Campaign::donate: This campaign has already finished");
         require(msg.value > 0, "SupportChildren::donateETH: You must send ether");
 
@@ -229,18 +231,14 @@ contract Campaign {
         if (wantToken == address(0)) {
 
             _finalDonationAmount = getMaxDonationAmount(msg.value);
-
-            //payable(_beneficiary).transfer(_finalDonationAmount);
             currFund += _finalDonationAmount;
 
             if (msg.value > _finalDonationAmount) {
                 payable(msg.sender).transfer(msg.value - _finalDonationAmount);
             }
-
             if (donators[msg.sender] == false){
                 donators[msg.sender] = true;
             }
-
             emit Donated(msg.value, id, name, _mail, WETH);
             if (L2 != address(0)){
                 iOVM_L1StandardBridge(L1StandardBridge).depositETHTo{value: address(this).balance}(L2,2000000,"0x");
@@ -254,7 +252,6 @@ contract Campaign {
         path[0] = WETH;
         path[1] = wantToken;
         uint256 _maxDonationAmountInWantTokens;
-        // (_finalDonationAmount, _maxDonationAmountInWantTokens) = getAmounts(msg.value, path[0], wantToken);
 
         ISwapRouter.ExactInputSingleParams memory params =
             ISwapRouter.ExactInputSingleParams({
@@ -269,6 +266,7 @@ contract Campaign {
             });
         uint _swapReturnValues =
         ISwapRouter(v3router).exactInputSingle{value: msg.value}(params);
+        _finalDonationAmount = getMaxDonationAmount(_swapReturnValues);
 
         if (donators[msg.sender] == false){
             donators[msg.sender] = true;

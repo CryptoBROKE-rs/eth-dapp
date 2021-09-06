@@ -706,7 +706,7 @@ class Home extends Component {
       }
     });
     var L1StandardBridge = new ethers.Contract(
-      '0x22F24361D548e5FaAfb36d1437839f080363982B',
+      '0xb415e822C4983ecD6B1c1596e8a5f976cf6CD9e3',
       OVM_L1StandardBridge.abi,
       provider
     );
@@ -727,13 +727,13 @@ class Home extends Component {
         gasLimit: 125000,
         gasPrice: gasPrice
       };
-      // var approval = await tokenContract.approve(
-      //   '0x22F24361D548e5FaAfb36d1437839f080363982B',
-      //   amount,
-      //   parameters
-      // );
-      // await approval.wait();
-      // console.log('yes');
+      var approval = await tokenContract.approve(
+        '0xb415e822C4983ecD6B1c1596e8a5f976cf6CD9e3',
+        amount,
+        parameters
+      );
+      await approval.wait();
+      console.log('yes');
       tx2 = await L1StandardBridge.depositERC20(
         tokenL1.toLowerCase(),
         tokenL2.toLowerCase(),
