@@ -210,7 +210,7 @@ export default function Login(props) {
   const formik = useFormik({});
   const { isSubmitting, handleSubmit } = formik;
   return (
-    <RootStyle title="Login | Minimal-UI">
+    <RootStyle title="Login | Support Children">
       <MHidden width="mdDown">
         <SectionStyle>
           <img src="/favicon/metamask.svg" alt="metamask login" />
