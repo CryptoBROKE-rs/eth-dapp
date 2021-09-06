@@ -55,9 +55,6 @@ export default function Home(props) {
     }
   });
 
-  console.log('koji kurac');
-
-
   const { resetForm, handleSubmit } = formik;
   const handleOpenFilter = () => {
     setOpenFilter(true);
@@ -81,7 +78,7 @@ export default function Home(props) {
       <Outlet/>
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
         <RouterLink to="/">
-          <Logo />
+          <Logo/>
         </RouterLink>
 
         <Stack direction="row" alignItems="right">

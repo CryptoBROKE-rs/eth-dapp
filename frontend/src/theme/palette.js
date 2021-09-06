@@ -85,7 +85,7 @@ const GRADIENTS = {
   error: createGradient(ERROR.light, ERROR.main)
 };
 
-const palette = {
+const paletteLight = {
   common: { black: '#000', white: '#fff' },
   primary: { ...PRIMARY },
   secondary: { ...SECONDARY },
@@ -110,4 +110,34 @@ const palette = {
   }
 };
 
-export default palette;
+
+const paletteDark = {
+  common: { black: '#fff', white: '#000' },
+  primary: { ...PRIMARY },
+  secondary: { ...SECONDARY },
+  info: { ...INFO },
+  success: { ...SUCCESS },
+  warning: { ...WARNING },
+  error: { ...ERROR },
+  grey: GREY,
+  gradients: GRADIENTS,
+  divider: GREY[500_24],
+  text: { primary: GREY[200], secondary: GREY[400], disabled: GREY[500] },
+  background: { paper: '#000', default: '#000', neutral: GREY[800] },
+  action: {
+    active: GREY[600],
+    hover: GREY[500_8],
+    selected: GREY[500_16],
+    disabled: GREY[500_80],
+    disabledBackground: GREY[500_24],
+    focus: GREY[500_24],
+    hoverOpacity: 0.08,
+    disabledOpacity: 0.48
+  }
+
+}
+
+export {paletteLight};
+export {paletteDark};
+
+

@@ -19,6 +19,9 @@ import FormLabel from '@material-ui/core/FormLabel';
 // components
 import Page from '../components/Page';
 import Home from '../OldHome';
+import { useTheme } from '@material-ui/core/styles';
+
+
 
 // ----------------------------------------------------------------------
 
@@ -51,19 +54,19 @@ const ContentStyle = styled('div')(({ theme }) => ({
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
   return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`nav-tabpanel-${index}`}
-      aria-labelledby={`full-width-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box p={3}>
-          <Typography>{children}</Typography>
-        </Box>
-      )}
-    </div>
+      <div
+          role="tabpanel"
+          hidden={value !== index}
+          id={`nav-tabpanel-${index}`}
+          aria-labelledby={`full-width-tab-${index}`}
+          {...other}
+      >
+        {value === index && (
+            <Box p={3}>
+              <Typography>{children}</Typography>
+            </Box>
+        )}
+      </div>
   );
 }
 
@@ -82,13 +85,14 @@ function a11yProps(index) {
 
 function LinkTab(props) {
   return (
-    <Tab
-      component="a"
-      onClick={(event) => {
-        event.preventDefault();
-      }}
-      {...props}
-    />
+      <Tab
+          color="secondary"
+          component="a"
+          onClick={(event) => {
+            event.preventDefault();
+          }}
+          {...props}
+      />
   );
 }
 
@@ -106,6 +110,7 @@ export default function ToLayer2() {
   const [amount, setAmount] = React.useState('');
   const classes = useStyles();
   const [value, setValue] = React.useState(0);
+  const theme = useTheme();
 
   const l1tokensDict = {
     ETH: '0x0000000000000000000000000000000000000000',
@@ -165,156 +170,161 @@ export default function ToLayer2() {
   console.log(currenciesL2);
   var currs = window.localStorage['layer'] == 'L1' ? currenciesL1 : currenciesL2;
 
+
+
   return (
-    <RootStyle title="Register | Minimal-UI">
-      <Container>
-        <SectionStyle>
-          <div className={classes.root}>
-            <AppBar position="static" color="default">
-              <Tabs
-                variant="fullWidth"
-                value={val}
-                onChange={handleChange}
-                aria-label="nav tabs example"
-              >
-                <LinkTab label="Deposit" href="/drafts" {...a11yProps(0)} />
-                <LinkTab label="Withdraw" href="/trash" {...a11yProps(1)} />
-              </Tabs>
-            </AppBar>
-
-            <TabPanel value={value} index={0}>
-              <Typography> from: KOVAN</Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <TextField
-                  fullWidth
-                  label="Amount"
-                  type="text"
-                  value={amount}
-                  variant="outlined"
-                  inputProps={{
-                    maxLength: 13,
-                    step: '0.1'
-                  }}
-                  onChange={(e) => setAmount(e.target.value.toString())}
-                />
-                <TextField
-                  id="standard-select-currency-native"
-                  select
-                  label="Native select"
-                  value={currencyL}
-                  onChange={handleCurrencyL}
-                  SelectProps={{
-                    native: true
-                  }}
-                  helperText="Please select your currency"
+      <RootStyle title="Register | Minimal-UI">
+        <Container>
+          <SectionStyle>
+            <div className={classes.root}>
+              <AppBar position="static" color="default">
+                <Tabs
+                    color="secondary"
+                    variant="fullWidth"
+                    value={val}
+                    onChange={handleChange}
+                    aria-label="nav tabs example"
+                    style={{backgroundColor: theme.palette.secondary.main}}
                 >
-                  {currenciesL1.map((option) => (
-                    <option key={option.value} value={option.label}>
-                      {option.label}
-                    </option>
-                  ))}
-                </TextField>
-              </Stack>
+                  <LinkTab color="secondary" label="Deposit" {...a11yProps(0)}
+                  />
+                  <LinkTab color="secondary" label="Withdraw" {...a11yProps(1)} />
+                </Tabs>
+              </AppBar>
 
-              <Grid container direction="row" alignItems="center" xs={15}>
-                <Grid item>
-                  <Icon icon={ArrowDownwardIcon} width={30} height={32} display="block" />
+              <TabPanel value={value} index={0}>
+                <Typography> from: KOVAN</Typography>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                  <TextField
+                      fullWidth
+                      label="Amount"
+                      type="text"
+                      value={amount}
+                      variant="outlined"
+                      inputProps={{
+                        maxLength: 13,
+                        step: '0.1'
+                      }}
+                      onChange={(e) => setAmount(e.target.value.toString())}
+                  />
+                  <TextField
+                      id="standard-select-currency-native"
+                      select
+                      label="Native select"
+                      value={currencyL}
+                      onChange={handleCurrencyL}
+                      SelectProps={{
+                        native: true
+                      }}
+                      helperText="Please select your currency"
+                  >
+                    {currenciesL1.map((option) => (
+                        <option key={option.value} value={option.label}>
+                          {option.label}
+                        </option>
+                    ))}
+                  </TextField>
+                </Stack>
+
+                <Grid container direction="row" alignItems="center" xs={15}>
+                  <Grid item>
+                    <Icon icon={ArrowDownwardIcon} width={30} height={32} display="block" />
+                  </Grid>
                 </Grid>
-              </Grid>
 
-              <Typography> to: OPTIMISTIC KOVAN</Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <TextField
-                  fullWidth
-                  label="Amount"
-                  type="text"
-                  value={amount}
-                  variant="outlined"
-                  inputProps={{
-                    maxLength: 13,
-                    step: '0.1'
-                  }}
-                  onChange={(e) => setAmount(e.target.value.toString())}
-                />
-                <TextField
-                  id="standard-select-currency-native"
-                  select
-                  label="Native select"
-                  value={currencyL}
-                  onChange={handleCurrencyL}
-                  SelectProps={{
-                    native: true
-                  }}
-                  helperText="Please select your currency"
+                <Typography> to: OPTIMISTIC KOVAN</Typography>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                  <TextField
+                      fullWidth
+                      label="Amount"
+                      type="text"
+                      value={amount}
+                      variant="outlined"
+                      inputProps={{
+                        maxLength: 13,
+                        step: '0.1'
+                      }}
+                      onChange={(e) => setAmount(e.target.value.toString())}
+                  />
+                  <TextField
+                      id="standard-select-currency-native"
+                      select
+                      label="Native select"
+                      value={currencyL}
+                      onChange={handleCurrencyL}
+                      SelectProps={{
+                        native: true
+                      }}
+                      helperText="Please select your currency"
+                  >
+                    {currenciesL2.map((option) => (
+                        <option key={option.value} value={option.label}>
+                          {option.label}
+                        </option>
+                    ))}
+                  </TextField>
+                </Stack>
+                <Button fullWidth size="large" type="submit" variant="contained" onClick={onSubmit}>
+                  Approve
+                </Button>
+              </TabPanel>
+              <TabPanel value={value} index={1}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                  <TextField
+                      fullWidth
+                      label="Amount"
+                      type="text"
+                      value={amount}
+                      variant="outlined"
+                      inputProps={{
+                        maxLength: 13,
+                        step: '0.1'
+                      }}
+                      onChange={(e) => setAmount(e.target.value.toString())}
+                  />
+                  <TextField
+                      id="standard-select-currency-native"
+                      select
+                      label="Native select"
+                      value={currency}
+                      onChange={handleCurrency}
+                      SelectProps={{
+                        native: true
+                      }}
+                      helperText="Please select your currency"
+                  >
+                    {currs.map((option) => (
+                        <option key={option.value} value={option.label}>
+                          {option.label}
+                        </option>
+                    ))}
+                  </TextField>
+                </Stack>
+                <FormControl component="fieldset">
+                  <FormLabel component="legend">Transation options</FormLabel>
+                  <RadioGroup
+                      aria-label="transaction-options"
+                      name="option1"
+                      value={val}
+                      onChange={(e) => setWithdraw(e.target.value)}
+                  >
+                    <FormControlLabel value="optimistic" control={<Radio />} label="Optimistic" />
+                    <FormControlLabel value="fast" control={<Radio />} label="Fast" />
+                  </RadioGroup>
+                </FormControl>
+                <Button
+                    fullWidth
+                    size="large"
+                    type="submit"
+                    variant="contained"
+                    onClick={handleWithdraw}
                 >
-                  {currenciesL2.map((option) => (
-                    <option key={option.value} value={option.label}>
-                      {option.label}
-                    </option>
-                  ))}
-                </TextField>
-              </Stack>
-              <Button fullWidth size="large" type="submit" variant="contained" onClick={onSubmit}>
-                Approve
-              </Button>
-            </TabPanel>
-            <TabPanel value={value} index={1}>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <TextField
-                  fullWidth
-                  label="Amount"
-                  type="text"
-                  value={amount}
-                  variant="outlined"
-                  inputProps={{
-                    maxLength: 13,
-                    step: '0.1'
-                  }}
-                  onChange={(e) => setAmount(e.target.value.toString())}
-                />
-                <TextField
-                  id="standard-select-currency-native"
-                  select
-                  label="Native select"
-                  value={currency}
-                  onChange={handleCurrency}
-                  SelectProps={{
-                    native: true
-                  }}
-                  helperText="Please select your currency"
-                >
-                  {currs.map((option) => (
-                    <option key={option.value} value={option.label}>
-                      {option.label}
-                    </option>
-                  ))}
-                </TextField>
-              </Stack>
-              <FormControl component="fieldset">
-                <FormLabel component="legend">Transation options</FormLabel>
-                <RadioGroup
-                  aria-label="transaction-options"
-                  name="option1"
-                  value={val}
-                  onChange={(e) => setWithdraw(e.target.value)}
-                >
-                  <FormControlLabel value="optimistic" control={<Radio />} label="Optimistic" />
-                  <FormControlLabel value="fast" control={<Radio />} label="Fast" />
-                </RadioGroup>
-              </FormControl>
-              <Button
-                fullWidth
-                size="large"
-                type="submit"
-                variant="contained"
-                onClick={handleWithdraw}
-              >
-                Withdraw
-              </Button>
-            </TabPanel>
-          </div>
-        </SectionStyle>
-      </Container>
-    </RootStyle>
+                  Withdraw
+                </Button>
+              </TabPanel>
+            </div>
+          </SectionStyle>
+        </Container>
+      </RootStyle>
   );
 }
