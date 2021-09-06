@@ -20,7 +20,7 @@ import Logo from "../components/Logo";
 // ----------------------------------------------------------------------
 
 const RootStyle = styled(Page)(({ theme }) => ({
-  top: 50,
+  top: 20,
   left: 0,
   lineHeight: 0,
   width: '100%',
@@ -73,17 +73,18 @@ export default function Home(props) {
   const changeLayer = () => {
     const layer = window.localStorage['layer']
     window.localStorage['layer'] = layer === 'L1' ? 'L2' : 'L1'
-    console.log(window.localStorage['layer'])
     window.location.reload();
   }
 
   return (
-    <RootStyle title="Home page | Minimal-UI">
+    <RootStyle title="Home page | Minimal-UI" paddingTop>
       <Outlet/>
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
         <RouterLink to="/">
           <Logo />
         </RouterLink>
+
+        <Stack direction="row" alignItems="right">
         <Button
             variant="contained"
             color="secondary"
@@ -91,16 +92,16 @@ export default function Home(props) {
             startIcon={<SwapVertIcon />}
             onClick={changeLayer}
         >Switch layer</Button>{window.localStorage['username'] === undefined ?
-          !window.localStorage['login'] && <Button variant="contained" component={RouterLink} to="/login" >
+          !window.localStorage['login'] && <Button variant="contained" className={classes.button} component={RouterLink} to="/login" >
             Login
           </Button> :
-          !window.localStorage['login'] && <Button variant="contained" onClick={props.onLoggedOut} component={RouterLink} to="/home">
+          !window.localStorage['login'] && <Button variant="contained" className={classes.button} onClick={props.onLoggedOut} component={RouterLink} to="/home">
             Logout
           </Button>}
+        </Stack>
       </Stack>
       <Container sx={0} >
         <Box display="flex" justifyContent="flex-end" alignItems="right">
-
         </Box>
         <Stack direction="row" alignItems="left" justifyContent="center">
           <Typography variant="h2" align="center">
