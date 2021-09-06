@@ -10,18 +10,21 @@ import Tabs from '@material-ui/core/Tabs';
 import { Icon } from '@iconify/react';
 import Tab from '@material-ui/core/Tab';
 import { Stack, TextField, Button, Grid } from '@material-ui/core';
+import Alert from '@material-ui/lab/Alert';
 import ArrowDownwardIcon from '@iconify/icons-eva/arrow-downward-fill';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import LinearProgress from '@material-ui/core/LinearProgress';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
+import OVM_L1StandardBridge from '../abisL2/OVM_L1StandardBridge.json';
+import OVM_L2StandardBridge from '../abisL2/OVM_L2StandardBridge.json';
 // components
 import Page from '../components/Page';
 import Home from '../OldHome';
-import { useTheme } from '@material-ui/core/styles';
-
-
+const ethers = require('ethers');
+const { Watcher } = require('@eth-optimism/core-utils');
 
 // ----------------------------------------------------------------------
 
@@ -50,24 +53,69 @@ const ContentStyle = styled('div')(({ theme }) => ({
   padding: theme.spacing(12, 0)
 }));
 
+const switchETHChain = async (chainID) => {
+  if (chainID == 42) {
+    chainID = '0x2A';
+  } else {
+    chainID = '0x45';
+  }
+  try {
+    await window.ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: chainID }]
+    });
+  } catch (error) {
+    // This error code indicates that the chain has not been added to MetaMask.
+    if (error.code === 4902) {
+      try {
+        if (chainID == 69) {
+          var url = 'https://kovan.optimism.io';
+        } else {
+          var url = 'https://kovan.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161';
+        }
+        console.log();
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [
+            {
+              chainName: chainID == 69 ? 'Optimistic Kovan' : 'Kovan',
+              chainId: chainID,
+              rpcUrls: [url]
+            }
+          ]
+        });
+      } catch (addError) {
+        console.log(addError);
+      }
+    }
+    // handle other "switch" errors
+  }
+};
+
 // ----------------------------------------------------------------------
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
   return (
-      <div
-          role="tabpanel"
-          hidden={value !== index}
-          id={`nav-tabpanel-${index}`}
-          aria-labelledby={`full-width-tab-${index}`}
-          {...other}
-      >
-        {value === index && (
-            <Box p={3}>
-              <Typography>{children}</Typography>
-            </Box>
-        )}
-      </div>
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`nav-tabpanel-${index}`}
+      aria-labelledby={`full-width-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box p={3}>
+          <Typography>{children}</Typography>
+        </Box>
+      )}
+    </div>
   );
+}
+
+function Alerts(props) {
+  // const classes = useStyles2();
+  const { children, message, ...other } = props;
+  return <Alert severity="info">{message}</Alert>;
 }
 
 TabPanel.propTypes = {
@@ -85,14 +133,13 @@ function a11yProps(index) {
 
 function LinkTab(props) {
   return (
-      <Tab
-          color="secondary"
-          component="a"
-          onClick={(event) => {
-            event.preventDefault();
-          }}
-          {...props}
-      />
+    <Tab
+      component="a"
+      onClick={(event) => {
+        event.preventDefault();
+      }}
+      {...props}
+    />
   );
 }
 
@@ -104,14 +151,24 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+const useStyles2 = makeStyles((theme) => ({
+  root: {
+    width: '100%',
+    '& > * + *': {
+      marginTop: theme.spacing(2)
+    }
+  }
+}));
+
 export default function ToLayer2() {
   const [currencyL, setCurrencyL] = React.useState('ETH');
   const [currency, setCurrency] = React.useState('ETH');
   const [amount, setAmount] = React.useState('');
   const classes = useStyles();
   const [value, setValue] = React.useState(0);
-  const theme = useTheme();
-
+  const [progress, setProgress] = React.useState(0);
+  const [isAlert, setAlert] = React.useState(false);
+  const [alertMessage, setMessage] = React.useState('');
   const l1tokensDict = {
     ETH: '0x0000000000000000000000000000000000000000',
     DAI: '0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa',
@@ -150,13 +207,176 @@ export default function ToLayer2() {
   };
   const oldHome = new Home();
   const [withdraw, setWithdraw] = React.useState('optimistic');
-  const onSubmit = () => {
-    console.log(amount);
-    oldHome.depositL2(amount, currencyL);
+
+  const depositL2 = async (amount, token) => {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const l2RpcProvider = oldHome.l2.provider;
+    const l1MessengerAddress = '0x4361d0F75A0186C05f971c566dC6bEa5957483fD';
+    // L2 messenger address is always the same.
+    const l2MessengerAddress = '0x4200000000000000000000000000000000000007';
+    const tokenL1 = oldHome.l1.tokensDict[token];
+    const tokenL2 = oldHome.l2.tokensDict[token];
+
+    // Tool that helps watches and waits for messages to be relayed between L1 and L2.
+    const watcher = new Watcher({
+      l1: {
+        provider: provider,
+        messengerAddress: l1MessengerAddress
+      },
+      l2: {
+        provider: l2RpcProvider,
+        messengerAddress: l2MessengerAddress
+      }
+    });
+    var L1StandardBridge = new ethers.Contract(
+      '0xb415e822C4983ecD6B1c1596e8a5f976cf6CD9e3',
+      OVM_L1StandardBridge.abi,
+      provider
+    );
+    L1StandardBridge = L1StandardBridge.connect(signer);
+    console.log('Depositing tokens into L2 ...');
+    var tx2 = '';
+    if (token == 'ETH') {
+      amount = ethers.utils.parseEther(amount.toString());
+      tx2 = await L1StandardBridge.depositETH(2000000, '0x', { value: amount });
+      const recep = await tx2.wait();
+    } else {
+      var tokenContract = new ethers.Contract(
+        tokenL1,
+        oldHome.genericERC20Abi,
+        oldHome.l1.provider
+      );
+      var decimals = await tokenContract.decimals();
+      tokenContract = tokenContract.connect(signer);
+      amount = ethers.utils.parseUnits(amount, decimals);
+      var gasPrice = oldHome.l1.provider.getGasPrice();
+      var parameters = {
+        gasLimit: 125000,
+        gasPrice: gasPrice
+      };
+      var approval = await tokenContract.approve(
+        '0xb415e822C4983ecD6B1c1596e8a5f976cf6CD9e3',
+        amount,
+        parameters
+      );
+      await approval.wait();
+      console.log('yes');
+      tx2 = await L1StandardBridge.depositERC20(
+        tokenL1.toLowerCase(),
+        tokenL2.toLowerCase(),
+        amount,
+        2000000,
+        '0x'
+      );
+      setAlert(true);
+      setMessage('Depositing tokens into L2 ...');
+      setProgress(0.33);
+      const recep = await tx2.wait();
+    }
+    // Wait for the message to be relayed to L2.
+    console.log('Waiting for deposit to be relayed to L2...');
+    setMessage('Waiting for deposit to be relayed to L2...');
+    setProgress(0.67);
+    const [msgHash1] = await watcher.getMessageHashesFromL1Tx(tx2.hash);
+    var address = await signer.getAddress();
+    const receipt = await watcher.getL2TransactionReceipt(msgHash1, true);
+    console.log('receipt', receipt);
+    if (token == 'ETH') {
+      var L2_ERC20 = new ethers.Contract(
+        '0x4200000000000000000000000000000000000006',
+        oldHome.genericERC20Abi,
+        l2RpcProvider
+      );
+    } else {
+      var L2_ERC20 = new ethers.Contract(tokenL2, oldHome.genericERC20Abi, l2RpcProvider);
+    }
+    // Log some balances to see that it worked!
+    console.log(`Balance on L1: ${await provider.getBalance(address)}`); // 0
+    console.log(`Balance on L2: ${await L2_ERC20.balanceOf(address)}`); // 1234
+    setMessage('Deposit Succesful!');
+    setProgress(1);
+    //
   };
-  const handleWithdraw = () => {
+  const withdrawL2 = async (amount, token) => {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const l2RpcProvider = oldHome.l2.provider;
+    const l1MessengerAddress = '0x4361d0F75A0186C05f971c566dC6bEa5957483fD';
+    // L2 messenger address is always the same.
+    const l2MessengerAddress = '0x4200000000000000000000000000000000000007';
+    const tokenL1 = oldHome.l1.tokensDict[token];
+    const tokenL2 = oldHome.l2.tokensDict[token];
+
+    // Tool that helps watches and waits for messages to be relayed between L1 and L2.
+    const watcher = new Watcher({
+      l1: {
+        provider: oldHome.l1.provider,
+        messengerAddress: l1MessengerAddress
+      },
+      l2: {
+        provider: l2RpcProvider,
+        messengerAddress: l2MessengerAddress
+      }
+    });
+    var L2StandardBridge = new ethers.Contract(
+      '0x4200000000000000000000000000000000000010',
+      OVM_L2StandardBridge.abi,
+      l2RpcProvider
+    );
+    L2StandardBridge = L2StandardBridge.connect(signer);
+
+    if (token == 'ETH') {
+      var L2_ERC20 = new ethers.Contract(
+        '0x4200000000000000000000000000000000000006',
+        oldHome.genericERC20Abi,
+        l2RpcProvider
+      );
+    } else {
+      var L2_ERC20 = new ethers.Contract(tokenL2, oldHome.genericERC20Abi, l2RpcProvider);
+    }
+    console.log(`Withdrawing tokens back to L1 ...`);
+    amount = ethers.utils.parseEther(amount);
     console.log(amount);
-    oldHome.withdrawL2(amount, currency);
+    var gasPrice = l2RpcProvider.getGasPrice();
+    var gasLimit = await L2StandardBridge.estimateGas.withdraw(
+      L2_ERC20.address,
+      amount,
+      2000000,
+      '0x'
+    );
+    var parameters = {
+      gasPrice: gasPrice,
+      gasLimit: gasLimit
+    };
+    const tx3 = await L2StandardBridge.withdraw(
+      L2_ERC20.address,
+      amount,
+      2000000,
+      '0x',
+      parameters
+    );
+    await tx3.wait();
+
+    // Wait for the message to be relayed to L1.
+    console.log(`Waiting for withdrawal to be relayed to L1...`);
+    const [msgHash2] = await watcher.getMessageHashesFromL2Tx(tx3.hash);
+    await watcher.getL1TransactionReceipt(msgHash2);
+    var address = await signer.getAddress();
+    // Log balances again!
+    console.log(`Balance on L1: ${await provider.getBalanceOf(address)}`); // 1234
+    console.log(`Balance on L2: ${await L2_ERC20.balanceOf(address)}`); // 0
+  };
+
+  const onSubmit = async () => {
+    await switchETHChain(42);
+    console.log(amount);
+    depositL2(amount, currencyL);
+  };
+  const handleWithdraw = async () => {
+    await switchETHChain(69);
+    console.log(amount);
+    withdrawL2(amount, currency);
   };
   var currenciesL1 = [];
   var currenciesL2 = [];
@@ -170,161 +390,159 @@ export default function ToLayer2() {
   console.log(currenciesL2);
   var currs = window.localStorage['layer'] == 'L1' ? currenciesL1 : currenciesL2;
 
-
-
   return (
-      <RootStyle title="Register | Minimal-UI">
-        <Container>
-          <SectionStyle>
-            <div className={classes.root}>
-              <AppBar position="static" color="default">
-                <Tabs
-                    color="secondary"
-                    variant="fullWidth"
-                    value={val}
-                    onChange={handleChange}
-                    aria-label="nav tabs example"
-                    style={{backgroundColor: theme.palette.secondary.main}}
+    <RootStyle title="Register | Minimal-UI">
+      <Container>
+        <Stack>{isAlert && <Alert severity="info">{alertMessage}</Alert>}</Stack>
+        <SectionStyle>
+          <div className={classes.root}>
+            <AppBar position="static" color="default">
+              <Tabs
+                variant="fullWidth"
+                value={val}
+                onChange={handleChange}
+                aria-label="nav tabs example"
+              >
+                <LinkTab label="Deposit" href="/drafts" {...a11yProps(0)} />
+                <LinkTab label="Withdraw" href="/trash" {...a11yProps(1)} />
+              </Tabs>
+            </AppBar>
+
+            <TabPanel value={value} index={0}>
+              <Typography> from: KOVAN</Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField
+                  fullWidth
+                  label="Amount"
+                  type="text"
+                  value={amount}
+                  variant="outlined"
+                  inputProps={{
+                    maxLength: 13,
+                    step: '0.1'
+                  }}
+                  onChange={(e) => setAmount(e.target.value.toString())}
+                />
+                <TextField
+                  id="standard-select-currency-native"
+                  select
+                  label="Native select"
+                  value={currencyL}
+                  onChange={handleCurrencyL}
+                  SelectProps={{
+                    native: true
+                  }}
+                  helperText="Please select your currency"
                 >
-                  <LinkTab color="secondary" label="Deposit" {...a11yProps(0)}
-                  />
-                  <LinkTab color="secondary" label="Withdraw" {...a11yProps(1)} />
-                </Tabs>
-              </AppBar>
+                  {currenciesL1.map((option) => (
+                    <option key={option.value} value={option.label}>
+                      {option.label}
+                    </option>
+                  ))}
+                </TextField>
+              </Stack>
 
-              <TabPanel value={value} index={0}>
-                <Typography> from: KOVAN</Typography>
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                  <TextField
-                      fullWidth
-                      label="Amount"
-                      type="text"
-                      value={amount}
-                      variant="outlined"
-                      inputProps={{
-                        maxLength: 13,
-                        step: '0.1'
-                      }}
-                      onChange={(e) => setAmount(e.target.value.toString())}
-                  />
-                  <TextField
-                      id="standard-select-currency-native"
-                      select
-                      label="Native select"
-                      value={currencyL}
-                      onChange={handleCurrencyL}
-                      SelectProps={{
-                        native: true
-                      }}
-                      helperText="Please select your currency"
-                  >
-                    {currenciesL1.map((option) => (
-                        <option key={option.value} value={option.label}>
-                          {option.label}
-                        </option>
-                    ))}
-                  </TextField>
-                </Stack>
-
-                <Grid container direction="row" alignItems="center" xs={15}>
-                  <Grid item>
-                    <Icon icon={ArrowDownwardIcon} width={30} height={32} display="block" />
-                  </Grid>
+              <Grid container direction="row" alignItems="center" xs={15}>
+                <Grid item>
+                  <Icon icon={ArrowDownwardIcon} width={30} height={32} display="block" />
                 </Grid>
+              </Grid>
 
-                <Typography> to: OPTIMISTIC KOVAN</Typography>
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                  <TextField
-                      fullWidth
-                      label="Amount"
-                      type="text"
-                      value={amount}
-                      variant="outlined"
-                      inputProps={{
-                        maxLength: 13,
-                        step: '0.1'
-                      }}
-                      onChange={(e) => setAmount(e.target.value.toString())}
-                  />
-                  <TextField
-                      id="standard-select-currency-native"
-                      select
-                      label="Native select"
-                      value={currencyL}
-                      onChange={handleCurrencyL}
-                      SelectProps={{
-                        native: true
-                      }}
-                      helperText="Please select your currency"
-                  >
-                    {currenciesL2.map((option) => (
-                        <option key={option.value} value={option.label}>
-                          {option.label}
-                        </option>
-                    ))}
-                  </TextField>
-                </Stack>
-                <Button fullWidth size="large" type="submit" variant="contained" onClick={onSubmit}>
-                  Approve
-                </Button>
-              </TabPanel>
-              <TabPanel value={value} index={1}>
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                  <TextField
-                      fullWidth
-                      label="Amount"
-                      type="text"
-                      value={amount}
-                      variant="outlined"
-                      inputProps={{
-                        maxLength: 13,
-                        step: '0.1'
-                      }}
-                      onChange={(e) => setAmount(e.target.value.toString())}
-                  />
-                  <TextField
-                      id="standard-select-currency-native"
-                      select
-                      label="Native select"
-                      value={currency}
-                      onChange={handleCurrency}
-                      SelectProps={{
-                        native: true
-                      }}
-                      helperText="Please select your currency"
-                  >
-                    {currs.map((option) => (
-                        <option key={option.value} value={option.label}>
-                          {option.label}
-                        </option>
-                    ))}
-                  </TextField>
-                </Stack>
-                <FormControl component="fieldset">
-                  <FormLabel component="legend">Transation options</FormLabel>
-                  <RadioGroup
-                      aria-label="transaction-options"
-                      name="option1"
-                      value={val}
-                      onChange={(e) => setWithdraw(e.target.value)}
-                  >
-                    <FormControlLabel value="optimistic" control={<Radio />} label="Optimistic" />
-                    <FormControlLabel value="fast" control={<Radio />} label="Fast" />
-                  </RadioGroup>
-                </FormControl>
-                <Button
-                    fullWidth
-                    size="large"
-                    type="submit"
-                    variant="contained"
-                    onClick={handleWithdraw}
+              <Typography> to: OPTIMISTIC KOVAN</Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField
+                  fullWidth
+                  label="Amount"
+                  type="text"
+                  value={amount}
+                  variant="outlined"
+                  inputProps={{
+                    maxLength: 13,
+                    step: '0.1'
+                  }}
+                  onChange={(e) => setAmount(e.target.value.toString())}
+                />
+                <TextField
+                  id="standard-select-currency-native"
+                  select
+                  label="Native select"
+                  value={currencyL}
+                  onChange={handleCurrencyL}
+                  SelectProps={{
+                    native: true
+                  }}
+                  helperText="Please select your currency"
                 >
-                  Withdraw
-                </Button>
-              </TabPanel>
-            </div>
-          </SectionStyle>
-        </Container>
-      </RootStyle>
+                  {currenciesL2.map((option) => (
+                    <option key={option.value} value={option.label}>
+                      {option.label}
+                    </option>
+                  ))}
+                </TextField>
+              </Stack>
+              <Stack>{isAlert && <LinearProgress value={progress}></LinearProgress>}</Stack>
+
+              <Button fullWidth size="large" type="submit" variant="contained" onClick={onSubmit}>
+                Approve
+              </Button>
+            </TabPanel>
+            <TabPanel value={value} index={1}>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField
+                  fullWidth
+                  label="Amount"
+                  type="text"
+                  value={amount}
+                  variant="outlined"
+                  inputProps={{
+                    maxLength: 13,
+                    step: '0.1'
+                  }}
+                  onChange={(e) => setAmount(e.target.value.toString())}
+                />
+                <TextField
+                  id="standard-select-currency-native"
+                  select
+                  label="Native select"
+                  value={currency}
+                  onChange={handleCurrency}
+                  SelectProps={{
+                    native: true
+                  }}
+                  helperText="Please select your currency"
+                >
+                  {currs.map((option) => (
+                    <option key={option.value} value={option.label}>
+                      {option.label}
+                    </option>
+                  ))}
+                </TextField>
+              </Stack>
+              <FormControl component="fieldset">
+                <FormLabel component="legend">Transation options</FormLabel>
+                <RadioGroup
+                  aria-label="transaction-options"
+                  name="option1"
+                  value={val}
+                  onChange={(e) => setWithdraw(e.target.value)}
+                >
+                  <FormControlLabel value="optimistic" control={<Radio />} label="Optimistic" />
+                  <FormControlLabel value="fast" control={<Radio />} label="Fast" />
+                </RadioGroup>
+              </FormControl>
+              <Button
+                fullWidth
+                size="large"
+                type="submit"
+                variant="contained"
+                onClick={handleWithdraw}
+              >
+                Withdraw
+              </Button>
+            </TabPanel>
+          </div>
+        </SectionStyle>
+      </Container>
+    </RootStyle>
   );
 }
