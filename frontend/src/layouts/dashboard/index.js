@@ -32,12 +32,12 @@ const MainStyle = styled('div')(({ theme }) => ({
 
 // ----------------------------------------------------------------------
 
-export default function DashboardLayout() {
+export default function DashboardLayout({onLoggedOut}) {
   const [open, setOpen] = useState(false);
 
   return (
     <RootStyle>
-      <DashboardSidebar isOpenSidebar={open} onCloseSidebar={() => setOpen(false)} />
+      <DashboardSidebar onLoggedOut={onLoggedOut} isOpenSidebar={open} onCloseSidebar={() => setOpen(false)} />
       <MainStyle>
         <Outlet />
       </MainStyle>

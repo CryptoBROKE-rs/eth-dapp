@@ -47,7 +47,7 @@ DashboardSidebar.propTypes = {
   onCloseSidebar: PropTypes.func
 };
 
-export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
+export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar, onLoggedOut }) {
   const classes = useStyles();
   const { pathname } = useLocation();
   const changeLayer = () => {
@@ -69,21 +69,24 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
         '& .simplebar-content': { height: '100%', display: 'flex', flexDirection: 'column' }
       }}
     >
+
       <Box sx={{ px: 2.5, py: 3 }}>
-        <Stack direction="column" alignItems="center" justifyContent="space-between" mb={5}>
             <Box component={RouterLink} to="/home" sx={{ display: 'inline-flex' }}>
             <Logo />
             </Box>
-            <Button
-                variant="contained"
-                color="secondary"
-                className={classes.button}
-                startIcon={<SwapVertIcon />}
-                onClick={changeLayer}
-            >Switch layer</Button>
+      </Box>
+        <Button
+            variant="contained"
+            color="secondary"
+            className={classes.button}
+            startIcon={<SwapVertIcon />}
+            onClick={changeLayer}
+        >Switch layer</Button>
+        <Button variant="contained" className={classes.button} onClick={onLoggedOut} component={RouterLink} to="/home">
+          Logout
+        </Button>
+      <Box sx={{ px: 2.5, py: 3 }}>
 
-
-        </Stack>
         <Link underline="none" component={RouterLink} to="#">
           <AccountStyle>
             <Avatar src={account.photoURL} alt="photoURL" />
@@ -100,12 +103,8 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
         <br/>
         <br/>
         <NavSection navConfig={sidebarConfig} />
-      </Box>
-
-      <Box sx={{ mb: 5, mx: 2.5 }}>
 
       </Box>
-
 
     </Scrollbar>
   );

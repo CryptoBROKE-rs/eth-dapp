@@ -64,7 +64,7 @@ export default function Router(props) {
   return useRoutes([
     {
       path: '/dashboard',
-      element: <DashboardLayout />,
+      element: <DashboardLayout onLoggedOut={handleLoggedOut}/>,
       children: [
         { path: '/', element: <Navigate to="/dashboard/app" replace /> },
         { path: 'app', element: <DashboardApp /> },
