@@ -28,7 +28,7 @@ const ProductImgStyle = styled('img')({
 
 const useStyles = makeStyles({
   root: {
-    width: '100%'
+    width: '100%',
   }
 });
 
@@ -76,7 +76,7 @@ export default function ShopProductCard({ camp, currencies, owner }) {
   // }, []);
 
   return (
-    <Card>
+    <Card style={window.localStorage['layer'] === 'L1' ? {backgroundColor: '#ffffff'} : {backgroundColor: '#222222'}}>
       <Box sx={{ pt: '100%', position: 'relative' }}>
         <ProductImgStyle alt={name} src={'https://ipfs.infura.io/ipfs/' + uri} />
       </Box>

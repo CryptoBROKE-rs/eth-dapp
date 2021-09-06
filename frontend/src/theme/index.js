@@ -5,7 +5,7 @@ import { CssBaseline } from '@material-ui/core';
 import { ThemeProvider, createTheme, StyledEngineProvider } from '@material-ui/core/styles';
 //
 import shape from './shape';
-import palette from './palette';
+import {paletteLight, paletteDark} from './palette.js';
 import typography from './typography';
 import GlobalStyles from './globalStyles';
 import componentsOverride from './overrides';
@@ -17,7 +17,17 @@ ThemeConfig.propTypes = {
   children: PropTypes.node
 };
 
+
+
+
+
 export default function ThemeConfig({ children }) {
+    const layer = window.localStorage['layer']
+    const palette = layer === 'L1' ? paletteLight : paletteDark
+
+    console.log(layer)
+
+
   const themeOptions = useMemo(
     () => ({
       palette,

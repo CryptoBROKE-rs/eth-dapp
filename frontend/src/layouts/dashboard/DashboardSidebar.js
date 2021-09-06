@@ -37,7 +37,7 @@ const AccountStyle = styled('div')(({ theme }) => ({
   alignItems: 'center',
   padding: theme.spacing(2, 2.5),
   borderRadius: theme.shape.borderRadiusSm,
-  backgroundColor: theme.palette.grey[200]
+  //backgroundColor: window.localStorage['layer'] === 'L1' ? theme.palette.grey[200] : '#333333'
 }));
 
 // ----------------------------------------------------------------------
@@ -93,7 +93,7 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
               <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
                 {window.localStorage['firstName'] + ' ' + window.localStorage['lastName']}
               </Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              <Typography variant="body2" sx={{ color: 'text.primary' }}>
                 {account.role}
               </Typography>
             </Box>
