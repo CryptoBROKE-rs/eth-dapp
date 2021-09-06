@@ -9,6 +9,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import { Icon } from '@iconify/react';
 import Tab from '@material-ui/core/Tab';
+import { withStyles } from '@material-ui/styles';
 import { Stack, TextField, Button, Grid } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import ArrowDownwardIcon from '@iconify/icons-eva/arrow-downward-fill';
@@ -20,9 +21,13 @@ import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
 import OVM_L1StandardBridge from '../abisL2/OVM_L1StandardBridge.json';
 import OVM_L2StandardBridge from '../abisL2/OVM_L2StandardBridge.json';
+import OVM_L1CrossDomainMessenger from '../abis/OVM_L1CrossDomainMessenger.json';
+import { getMessagesAndProofsForL2Transaction } from '@eth-optimism/message-relayer';
+import { sleep } from '@eth-optimism/core-utils';
 // components
 import Page from '../components/Page';
 import Home from '../OldHome';
+import { useTheme } from '@emotion/react';
 const ethers = require('ethers');
 const { Watcher } = require('@eth-optimism/core-utils');
 
@@ -52,7 +57,19 @@ const ContentStyle = styled('div')(({ theme }) => ({
   justifyContent: 'center',
   padding: theme.spacing(12, 0)
 }));
-
+const BorderLinearProgress = withStyles((theme) => ({
+  root: {
+    height: 10,
+    borderRadius: 5
+  },
+  colorPrimary: {
+    backgroundColor: theme.palette.grey[theme.palette.type === 'light' ? 200 : 700]
+  },
+  bar: {
+    borderRadius: 5,
+    backgroundColor: '#1a90ff'
+  }
+}))(LinearProgress);
 const switchETHChain = async (chainID) => {
   if (chainID == 42) {
     chainID = '0x2A';
@@ -112,12 +129,6 @@ function TabPanel(props) {
   );
 }
 
-function Alerts(props) {
-  // const classes = useStyles2();
-  const { children, message, ...other } = props;
-  return <Alert severity="info">{message}</Alert>;
-}
-
 TabPanel.propTypes = {
   children: PropTypes.node,
   index: PropTypes.any.isRequired,
@@ -168,7 +179,7 @@ export default function ToLayer2() {
   const [value, setValue] = React.useState(0);
   const [progress, setProgress] = React.useState(0);
   const [isAlert, setAlert] = React.useState(false);
-  const [alertMessage, setMessage] = React.useState('');
+  const [alertMessage, setMessage] = React.useState([]);
   const l1tokensDict = {
     ETH: '0x0000000000000000000000000000000000000000',
     DAI: '0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa',
@@ -207,6 +218,7 @@ export default function ToLayer2() {
   };
   const oldHome = new Home();
   const [withdraw, setWithdraw] = React.useState('optimistic');
+  const [messagePairs, setMessagePairs] = React.useState('');
 
   const depositL2 = async (amount, token) => {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -230,7 +242,7 @@ export default function ToLayer2() {
       }
     });
     var L1StandardBridge = new ethers.Contract(
-      '0xb415e822C4983ecD6B1c1596e8a5f976cf6CD9e3',
+      '0x22F24361D548e5FaAfb36d1437839f080363982B',
       OVM_L1StandardBridge.abi,
       provider
     );
@@ -240,7 +252,6 @@ export default function ToLayer2() {
     if (token == 'ETH') {
       amount = ethers.utils.parseEther(amount.toString());
       tx2 = await L1StandardBridge.depositETH(2000000, '0x', { value: amount });
-      const recep = await tx2.wait();
     } else {
       var tokenContract = new ethers.Contract(
         tokenL1,
@@ -269,15 +280,15 @@ export default function ToLayer2() {
         2000000,
         '0x'
       );
-      setAlert(true);
-      setMessage('Depositing tokens into L2 ...');
-      setProgress(0.33);
-      const recep = await tx2.wait();
     }
+    setAlert(true);
+    setMessage('Depositing tokens into L2 ...');
+    setProgress(33);
+    const recep = await tx2.wait();
     // Wait for the message to be relayed to L2.
     console.log('Waiting for deposit to be relayed to L2...');
     setMessage('Waiting for deposit to be relayed to L2...');
-    setProgress(0.67);
+    setProgress(67);
     const [msgHash1] = await watcher.getMessageHashesFromL1Tx(tx2.hash);
     var address = await signer.getAddress();
     const receipt = await watcher.getL2TransactionReceipt(msgHash1, true);
@@ -295,8 +306,11 @@ export default function ToLayer2() {
     console.log(`Balance on L1: ${await provider.getBalance(address)}`); // 0
     console.log(`Balance on L2: ${await L2_ERC20.balanceOf(address)}`); // 1234
     setMessage('Deposit Succesful!');
-    setProgress(1);
-    //
+    setProgress(100);
+    setTimeout(() => {
+      setAlert(false);
+      setProgress(0);
+    }, 5000);
   };
   const withdrawL2 = async (amount, token) => {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -349,6 +363,7 @@ export default function ToLayer2() {
       gasPrice: gasPrice,
       gasLimit: gasLimit
     };
+
     const tx3 = await L2StandardBridge.withdraw(
       L2_ERC20.address,
       amount,
@@ -356,16 +371,106 @@ export default function ToLayer2() {
       '0x',
       parameters
     );
+    setAlert(true);
+    setMessage('Withdrawing tokens back to L1 ...');
+    setProgress(33);
     await tx3.wait();
-
+    await switchETHChain(42);
     // Wait for the message to be relayed to L1.
     console.log(`Waiting for withdrawal to be relayed to L1...`);
-    const [msgHash2] = await watcher.getMessageHashesFromL2Tx(tx3.hash);
-    await watcher.getL1TransactionReceipt(msgHash2);
-    var address = await signer.getAddress();
+    setMessage('Waiting for withdrawal to be relayed to L1...');
+    setProgress(67);
+    const l1RpcProviderUrl = 'https://kovan.infura.io/v3/' + process.env.REACT_APP_INFURA_KEY;
+    const l2RpcProviderUrl = 'https://kovan.optimism.io';
+    const l1StateCommitmentChainAddress = '0xa2487713665AC596b0b3E4881417f276834473d2';
+    const l2CrossDomainMessengerAddress = '0x4200000000000000000000000000000000000007';
+    const l2TransactionHash = tx3.hash;
+    while (true) {
+      try {
+        var messagePairs = await getMessagesAndProofsForL2Transaction(
+          l1RpcProviderUrl,
+          l2RpcProviderUrl,
+          l1StateCommitmentChainAddress,
+          l2CrossDomainMessengerAddress,
+          l2TransactionHash
+        );
+        break;
+      } catch (err) {
+        if (err.message.includes('unable to find state root batch for tx')) {
+          console.log(`no state root batch for tx yet, trying again in 5s...`);
+          await sleep(5000);
+        } else {
+          throw err;
+        }
+      }
+    }
+
+    console.log(messagePairs);
+    setMessagePairs(messagePairs);
+    return messagePairs;
+  };
+  const finalizeWithdrawal = async (messagePairs) => {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const l2RpcProvider = oldHome.l2.provider;
+    const l1RpcProviderUrl = 'https://kovan.infura.io/v3/' + process.env.REACT_APP_INFURA_KEY;
+    const l2RpcProviderUrl = 'https://kovan.optimism.io';
+    const l1StateCommitmentChainAddress = '0xa2487713665AC596b0b3E4881417f276834473d2';
+    const l2CrossDomainMessengerAddress = '0x4200000000000000000000000000000000000007';
+    const l1MessengerAddress = '0x4361d0F75A0186C05f971c566dC6bEa5957483fD';
+    // L2 messenger address is always the same.
+    const l2MessengerAddress = '0x4200000000000000000000000000000000000007';
+    const l1provider = new ethers.providers.JsonRpcProvider(l1RpcProviderUrl);
+    var l1CrossDomainMessenger = new ethers.Contract(
+      l1MessengerAddress,
+      OVM_L1CrossDomainMessenger.abi,
+      l1provider
+    );
+    l1CrossDomainMessenger = l1CrossDomainMessenger.connect(signer);
+    console.log(`found ${messagePairs.length} messages`);
+    for (let i = 0; i < messagePairs.length; i++) {
+      console.log(`relaying message ${i + 1}/${messagePairs.length}`);
+      const { message, proof } = messagePairs[i];
+      while (true) {
+        try {
+          const result = await l1CrossDomainMessenger.relayMessage(
+            message.target,
+            message.sender,
+            message.message,
+            message.messageNonce,
+            proof
+          );
+          await result.wait();
+          console.log(
+            `relayed message ${i + 1}/${messagePairs.length}! L1 tx hash: ${result.hash}`
+          );
+          break;
+        } catch (err) {
+          if (err.message.includes('execution failed due to an exception')) {
+            console.log(`fraud proof may not be elapsed, trying again in 5s...`);
+            await sleep(5000);
+          } else if (err.message.includes('message has already been received')) {
+            console.log(`message ${i + 1}/${messagePairs.length} was relayed by someone else`);
+            break;
+          } else {
+            throw err;
+          }
+        }
+      }
+    }
+    setMessage('Withdrawal complete!');
+    setProgress(100);
+    // console.log(tx3.hash);
+    // const [msgHash2] = await watcher.getMessageHashesFromL2Tx(tx3.hash);
+    // await watcher.getL1TransactionReceipt(msgHash2);
+    // var address = await signer.getAddress();
     // Log balances again!
-    console.log(`Balance on L1: ${await provider.getBalanceOf(address)}`); // 1234
-    console.log(`Balance on L2: ${await L2_ERC20.balanceOf(address)}`); // 0
+    // console.log(`Balance on L1: ${await provider.getBalanceOf(address)}`); // 1234
+    // console.log(`Balance on L2: ${await L2_ERC20.balanceOf(address)}`); // 0
+    setTimeout(() => {
+      setAlert(false);
+      setProgress(0);
+    }, 5000);
   };
 
   const onSubmit = async () => {
@@ -376,7 +481,12 @@ export default function ToLayer2() {
   const handleWithdraw = async () => {
     await switchETHChain(69);
     console.log(amount);
-    withdrawL2(amount, currency);
+    var messagePairs = withdrawL2(amount, currency);
+    setMessagePairs(messagePairs);
+  };
+  const handleFinalize = async () => {
+    await finalizeWithdrawal(messagePairs);
+    setMessagePairs('');
   };
   var currenciesL1 = [];
   var currenciesL2 = [];
@@ -389,19 +499,22 @@ export default function ToLayer2() {
   console.log(currenciesL1);
   console.log(currenciesL2);
   var currs = window.localStorage['layer'] == 'L1' ? currenciesL1 : currenciesL2;
-
+  const theme = useTheme();
   return (
     <RootStyle title="Register | Minimal-UI">
       <Container>
         <Stack>{isAlert && <Alert severity="info">{alertMessage}</Alert>}</Stack>
+        <br />
         <SectionStyle>
           <div className={classes.root}>
             <AppBar position="static" color="default">
               <Tabs
+                color="secondary"
                 variant="fullWidth"
                 value={val}
                 onChange={handleChange}
                 aria-label="nav tabs example"
+                style={{ backgroundColor: theme.palette.secondary.main }}
               >
                 <LinkTab label="Deposit" href="/drafts" {...a11yProps(0)} />
                 <LinkTab label="Withdraw" href="/trash" {...a11yProps(1)} />
@@ -480,8 +593,16 @@ export default function ToLayer2() {
                   ))}
                 </TextField>
               </Stack>
-              <Stack>{isAlert && <LinearProgress value={progress}></LinearProgress>}</Stack>
-
+              <br />
+              <Stack>
+                {isAlert && (
+                  <BorderLinearProgress
+                    variant="determinate"
+                    value={progress}
+                  ></BorderLinearProgress>
+                )}
+              </Stack>
+              <br />
               <Button fullWidth size="large" type="submit" variant="contained" onClick={onSubmit}>
                 Approve
               </Button>
@@ -530,15 +651,38 @@ export default function ToLayer2() {
                   <FormControlLabel value="fast" control={<Radio />} label="Fast" />
                 </RadioGroup>
               </FormControl>
-              <Button
-                fullWidth
-                size="large"
-                type="submit"
-                variant="contained"
-                onClick={handleWithdraw}
-              >
-                Withdraw
-              </Button>
+              <br />
+              <Stack>
+                {isAlert && (
+                  <BorderLinearProgress
+                    variant="determinate"
+                    value={progress}
+                  ></BorderLinearProgress>
+                )}
+              </Stack>
+              <br />
+              {messagePairs == '' && (
+                <Button
+                  fullWidth
+                  size="large"
+                  type="submit"
+                  variant="contained"
+                  onClick={handleWithdraw}
+                >
+                  Withdraw
+                </Button>
+              )}
+              {messagePairs != '' && (
+                <Button
+                  fullWidth
+                  size="large"
+                  type="submit"
+                  variant="contained"
+                  onClick={handleFinalize}
+                >
+                  Finalize withdrawal
+                </Button>
+              )}
             </TabPanel>
           </div>
         </SectionStyle>

@@ -706,7 +706,7 @@ class Home extends Component {
       }
     });
     var L1StandardBridge = new ethers.Contract(
-      '0xb415e822C4983ecD6B1c1596e8a5f976cf6CD9e3',
+      '0x22F24361D548e5FaAfb36d1437839f080363982B',
       OVM_L1StandardBridge.abi,
       provider
     );
@@ -801,9 +801,9 @@ class Home extends Component {
     } else {
       var L2_ERC20 = new ethers.Contract(tokenL2, this.genericERC20Abi, l2RpcProvider);
     }
+    var decimals = await L2_ERC20.decimals();
     console.log(`Withdrawing tokens back to L1 ...`);
-    amount = ethers.utils.parseEther(amount);
-    console.log(amount);
+    amount = ethers.utils.parseUnits(amount, decimals);
     var gasPrice = l2RpcProvider.getGasPrice();
     var gasLimit = await L2StandardBridge.estimateGas.withdraw(
       L2_ERC20.address,

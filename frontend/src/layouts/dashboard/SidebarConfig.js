@@ -15,25 +15,22 @@ const sidebarConfig = [
     path: '/dashboard/app',
     icon: getIcon(pieChart2Fill)
   },
-  {
-    title: 'user',
-    path: '/dashboard/user',
-    icon: getIcon(peopleFill)
-  },
+  // {
+  //   title: 'user',
+  //   path: '/dashboard/user',
+  //   icon: getIcon(peopleFill)
+  // },
   {
     title: 'Create campaign',
     path: '/dashboard/newCampaign',
     icon: getIcon(personAddFill)
   },
-  {
-    title: 'Not found',
-    path: '/404',
-    icon: getIcon(alertTriangleFill)
-  },
-  {title: 'Layer 2 swapper',
-  path: '/dashboard/Layer2',
-  icon: <SwapVertIcon />
-}
+  // {
+  //   title: 'Not found',
+  //   path: '/404',
+  //   icon: getIcon(alertTriangleFill)
+  // },
+  { title: 'Layer 2 swapper', path: '/dashboard/Layer2', icon: <SwapVertIcon /> }
 ];
 
 export default sidebarConfig;
