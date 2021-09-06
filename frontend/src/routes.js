@@ -66,7 +66,7 @@ export default function Router(props) {
       path: '/dashboard',
       element: <DashboardLayout onLoggedOut={handleLoggedOut}/>,
       children: [
-        { path: '/', element: <Navigate to="/dashboard/app" replace /> },
+        { path: '/', element: <Navigate to={window.localStorage['username'] === undefined ? "/home" : "/dashboard/app"} replace /> },
         { path: 'app', element: <DashboardApp /> },
         { path: 'user', element: <User /> },
         { path: 'products', element: <Products /> },
