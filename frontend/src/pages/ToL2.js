@@ -514,10 +514,10 @@ export default function ToLayer2() {
                 value={val}
                 onChange={handleChange}
                 aria-label="nav tabs example"
-                style={{ backgroundColor: theme.palette.secondary.main }}
+                style={{ backgroundColor: theme.palette.secondary.main, color: '#ffffff'}}
               >
-                <LinkTab label="Deposit" href="/drafts" {...a11yProps(0)} />
-                <LinkTab label="Withdraw" href="/trash" {...a11yProps(1)} />
+                <LinkTab label="Deposit" href="/drafts" {...a11yProps(0)} style={{color: '#ffffff'}}/>
+                <LinkTab label="Withdraw" href="/trash" {...a11yProps(1)} style={{color: '#ffffff'}}/>
               </Tabs>
             </AppBar>
 
