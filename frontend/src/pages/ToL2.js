@@ -219,6 +219,7 @@ export default function ToLayer2() {
   const oldHome = new Home();
   const [withdraw, setWithdraw] = React.useState('optimistic');
   const [messagePairs, setMessagePairs] = React.useState('');
+  const [finalize, setFinalize] = React.useState(false);
 
   const depositL2 = async (amount, token) => {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -407,6 +408,8 @@ export default function ToLayer2() {
 
     console.log(messagePairs);
     setMessagePairs(messagePairs);
+    setFinalize(true);
+    setMessage('You can now finish your withdrawal.');
     return messagePairs;
   };
   const finalizeWithdrawal = async (messagePairs) => {
@@ -459,6 +462,7 @@ export default function ToLayer2() {
       }
     }
     setMessage('Withdrawal complete!');
+    setFinalize(false);
     setProgress(100);
     // console.log(tx3.hash);
     // const [msgHash2] = await watcher.getMessageHashesFromL2Tx(tx3.hash);
@@ -481,7 +485,7 @@ export default function ToLayer2() {
   const handleWithdraw = async () => {
     await switchETHChain(69);
     console.log(amount);
-    var messagePairs = withdrawL2(amount, currency);
+    var messagePairs = await withdrawL2(amount, currency);
     setMessagePairs(messagePairs);
   };
   const handleFinalize = async () => {
@@ -514,10 +518,20 @@ export default function ToLayer2() {
                 value={val}
                 onChange={handleChange}
                 aria-label="nav tabs example"
-                style={{ backgroundColor: theme.palette.secondary.main, color: '#ffffff'}}
+                style={{ backgroundColor: theme.palette.secondary.main, color: '#ffffff' }}
               >
-                <LinkTab label="Deposit" href="/drafts" {...a11yProps(0)} style={{color: '#ffffff'}}/>
-                <LinkTab label="Withdraw" href="/trash" {...a11yProps(1)} style={{color: '#ffffff'}}/>
+                <LinkTab
+                  label="Deposit"
+                  href="/drafts"
+                  {...a11yProps(0)}
+                  style={{ color: '#ffffff' }}
+                />
+                <LinkTab
+                  label="Withdraw"
+                  href="/trash"
+                  {...a11yProps(1)}
+                  style={{ color: '#ffffff' }}
+                />
               </Tabs>
             </AppBar>
 
@@ -661,7 +675,7 @@ export default function ToLayer2() {
                 )}
               </Stack>
               <br />
-              {messagePairs == '' && (
+              {!finalize && (
                 <Button
                   fullWidth
                   size="large"
@@ -672,7 +686,7 @@ export default function ToLayer2() {
                   Withdraw
                 </Button>
               )}
-              {messagePairs != '' && (
+              {finalize && (
                 <Button
                   fullWidth
                   size="large"
