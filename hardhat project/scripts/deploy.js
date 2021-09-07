@@ -20,13 +20,15 @@ async function main() {
 
   // const Campaign = await hre.ethers.getContractFactory('Campaign');
   // const camp = await Campaign.deploy(
-  //   0,
-  //   'testL2',
-  //   50000000000000,
+  //   1,
+  //   'pls radi',
+  //   '10000000000000000000',
   //   'test',
-  //   1630857307,
-  //   '0x4200000000000000000000000000000000000006',
+  //   1631809215,
+  //   '0x0000000000000000000000000000000000000000',
   //   'QmSgvgwxZGaBLqkGyWemEDqikCqU52XxsYLKtdy3vGZ8uq',
+  //   '0x0000000000000000000000000000000000000000',
+  //   '0x0000000000000000000000000000000000000000',
   //   '0xd438644837866493bFF771480aAD4B71F2B8aC97'
   // );
   // await camp.deployed();

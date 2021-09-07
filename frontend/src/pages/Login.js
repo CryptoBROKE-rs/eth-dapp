@@ -61,7 +61,6 @@ let REACT_APP_FRONTEND_URL = 'http://localhost:3000';
 let REACT_APP_BACKEND_URL = 'http://localhost:8000/api';
 
 export default function Login(props) {
-
   let web3;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -96,8 +95,8 @@ export default function Login(props) {
     // }
 
     const home = new Home();
-    await home.addMember('L1')
-    await home.addMember('L2')
+    await home.addMember('L1');
+    await home.addMember('L2');
 
     props.onLoggedIn(auth);
 

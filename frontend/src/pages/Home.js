@@ -1,6 +1,6 @@
 import { useFormik } from 'formik';
 import { useState } from 'react';
-import { Link as RouterLink, Outlet} from 'react-router-dom';
+import { Link as RouterLink, Outlet } from 'react-router-dom';
 // material
 import { Container, Stack, Typography, Button, Box } from '@material-ui/core';
 import { styled } from '@material-ui/core/styles';
@@ -13,10 +13,9 @@ import {
   ProductCartWidget,
   ProductFilterSidebar
 } from '../components/_dashboard/products';
-import LogoOnlyLayout from "../layouts/LogoOnlyLayout";
-import SwapVertIcon from "@material-ui/icons/SwapVert";
-import Logo from "../components/Logo";
-import Item from "../components/Item";
+import LogoOnlyLayout from '../layouts/LogoOnlyLayout';
+import SwapVertIcon from '@material-ui/icons/SwapVert';
+import Logo from '../components/Logo';
 
 // ----------------------------------------------------------------------
 
@@ -34,8 +33,8 @@ const RootStyle = styled(Page)(({ theme }) => ({
 
 const useStyles = makeStyles((theme) => ({
   button: {
-    margin: theme.spacing(1),
-  },
+    margin: theme.spacing(1)
+  }
 }));
 
 // ----------------------------------------------------------------------
@@ -69,38 +68,55 @@ export default function Home(props) {
   };
 
   const changeLayer = () => {
-    const layer = window.localStorage['layer']
-    window.localStorage['layer'] = layer === 'L1' ? 'L2' : 'L1'
+    const layer = window.localStorage['layer'];
+    window.localStorage['layer'] = layer === 'L1' ? 'L2' : 'L1';
     window.location.reload();
-  }
+  };
 
   return (
     <RootStyle title="Home page | Support children" paddingTop>
-      <Outlet/>
+      <Outlet />
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
         <RouterLink to="/">
-          <Logo/>
+          <Logo />
         </RouterLink>
 
         <Stack direction="row" alignItems="right">
-        <Button
+          <Button
             variant="contained"
             color="secondary"
             className={classes.button}
             startIcon={<SwapVertIcon />}
             onClick={changeLayer}
-        >Switch layer</Button>{window.localStorage['username'] === undefined ?
-          !window.localStorage['login'] && <Button variant="contained" className={classes.button} component={RouterLink} to="/login" >
-            Login
-          </Button> :
-          !window.localStorage['login'] && <Button variant="contained" className={classes.button} onClick={props.onLoggedOut} component={RouterLink} to="/home">
-            Logout
-          </Button>}
+          >
+            Switch layer
+          </Button>
+          {window.localStorage['username'] === undefined
+            ? !window.localStorage['login'] && (
+                <Button
+                  variant="contained"
+                  className={classes.button}
+                  component={RouterLink}
+                  to="/login"
+                >
+                  Login
+                </Button>
+              )
+            : !window.localStorage['login'] && (
+                <Button
+                  variant="contained"
+                  className={classes.button}
+                  onClick={props.onLoggedOut}
+                  component={RouterLink}
+                  to="/home"
+                >
+                  Logout
+                </Button>
+              )}
         </Stack>
       </Stack>
-      <Container sx={0} >
-        <Box display="flex" justifyContent="flex-end" alignItems="right">
-        </Box>
+      <Container sx={0}>
+        <Box display="flex" justifyContent="flex-end" alignItems="right"></Box>
         <Stack direction="row" alignItems="left" justifyContent="center">
           <Typography variant="h2" align="center">
             Support children

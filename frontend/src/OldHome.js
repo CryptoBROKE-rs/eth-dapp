@@ -521,56 +521,56 @@ class Home extends Component {
     return { activeCamps: activeCamps, finishedCamps: finishedCamps, inactiveCamps: inactiveCamps };
   }
 
-  async swap(campaignId, amount, email, token, uri) {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-    console.log(provider, signer);
-    var campAddress = await this.contractOrg.campaigns(parseInt(campaignId, 10));
-    console.log(campAddress);
-    var contract = new ethers.Contract(campAddress, this.campAbi, provider);
-    contract = contract.connect(signer);
-    console.log(amount);
-    console.log(token, this.genericERC20Abi, provider);
-    var tokenContract = new ethers.Contract(token, this.genericERC20Abi, provider);
-    tokenContract = tokenContract.connect(signer);
-    var decimals = await tokenContract.decimals();
-    amount = ethers.utils.parseUnits(amount, decimals);
-    console.log(this.swapperAddress);
-    var gasPrice = await provider.getGasPrice();
-    var gasEstimate = await tokenContract.estimateGas.approve(this.swapperAddress, amount);
-    var parameters = {
-      gasLimit: gasEstimate,
-      gasPrice: gasPrice
-    };
-    var approval = await tokenContract.approve(this.swapperAddress, amount, parameters);
-    console.log(approval);
-    var swapContract = new ethers.Contract(this.swapperAddress, this.swapAbi, provider);
-    swapContract = swapContract.connect(signer);
-    gasPrice = await provider.getGasPrice();
-    var block = await provider.getBlock('latest');
-    console.log(block.gasLimit);
-    gasEstimate = await swapContract.estimateGas.swapExactInputSingle(
-      amount,
-      token,
-      campAddress,
-      uri,
-      email
-    );
-    parameters = {
-      gasLimit: gasEstimate,
-      gasPrice: gasPrice
-    };
-    console.log(parameters);
-    var outAmount = await swapContract.swapExactInputSingle(
-      amount,
-      token,
-      campAddress,
-      uri,
-      email,
-      parameters
-    );
-    console.log(outAmount);
-  }
+  // async swap(campaignId, amount, email, token, uri) {
+  //   const provider = new ethers.providers.Web3Provider(window.ethereum);
+  //   const signer = provider.getSigner();
+  //   console.log(provider, signer);
+  //   var campAddress = await this.contractOrg.campaigns(parseInt(campaignId, 10));
+  //   console.log(campAddress);
+  //   var contract = new ethers.Contract(campAddress, this.campAbi, provider);
+  //   contract = contract.connect(signer);
+  //   console.log(amount);
+  //   console.log(token, this.genericERC20Abi, provider);
+  //   var tokenContract = new ethers.Contract(token, this.genericERC20Abi, provider);
+  //   tokenContract = tokenContract.connect(signer);
+  //   var decimals = await tokenContract.decimals();
+  //   amount = ethers.utils.parseUnits(amount, decimals);
+  //   console.log(this.swapperAddress);
+  //   var gasPrice = await provider.getGasPrice();
+  //   var gasEstimate = await tokenContract.estimateGas.approve(this.swapperAddress, amount);
+  //   var parameters = {
+  //     gasLimit: gasEstimate,
+  //     gasPrice: gasPrice
+  //   };
+  //   var approval = await tokenContract.approve(this.swapperAddress, amount, parameters);
+  //   console.log(approval);
+  //   var swapContract = new ethers.Contract(this.swapperAddress, this.swapAbi, provider);
+  //   swapContract = swapContract.connect(signer);
+  //   gasPrice = await provider.getGasPrice();
+  //   var block = await provider.getBlock('latest');
+  //   console.log(block.gasLimit);
+  //   gasEstimate = await swapContract.estimateGas.swapExactInputSingle(
+  //     amount,
+  //     token,
+  //     campAddress,
+  //     uri,
+  //     email
+  //   );
+  //   parameters = {
+  //     gasLimit: gasEstimate,
+  //     gasPrice: gasPrice
+  //   };
+  //   console.log(parameters);
+  //   var outAmount = await swapContract.swapExactInputSingle(
+  //     amount,
+  //     token,
+  //     campAddress,
+  //     uri,
+  //     email,
+  //     parameters
+  //   );
+  //   console.log(outAmount);
+  // }
 
   async donate(campaignId, amount, email, currency, layer) {
     if (layer == 'L1') {
@@ -901,7 +901,44 @@ class Home extends Component {
   //     console.log(goal._hex[0]);
   //     var tx = await orgContract.addCampaign(name, tokens, description, stamp, address);
   //   }
-
+  async switchETHChain(chainID) {
+    if (chainID == 42) {
+      chainID = '0x2A';
+    } else {
+      chainID = '0x45';
+    }
+    try {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: chainID }]
+      });
+    } catch (error) {
+      // This error code indicates that the chain has not been added to MetaMask.
+      if (error.code === 4902) {
+        try {
+          if (chainID == 69) {
+            var url = 'https://kovan.optimism.io';
+          } else {
+            var url = 'https://kovan.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161';
+          }
+          console.log();
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [
+              {
+                chainName: chainID == 69 ? 'Optimistic Kovan' : 'Kovan',
+                chainId: chainID,
+                rpcUrls: [url]
+              }
+            ]
+          });
+        } catch (addError) {
+          console.log(addError);
+        }
+      }
+      // handle other "switch" errors
+    }
+  }
   async addMember(layer) {
     var params = layer == 'L1' ? this.l1 : this.l2;
     const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -911,9 +948,10 @@ class Home extends Component {
     const contractOrg = new ethers.Contract(params.orgAddress, params.orgAbi, params.provider);
 
     const orgContract = contractOrg.connect(signer);
-    var member = await contractOrg.members(address);
-
-    if (!member) {
+    const member = await contractOrg.members(address);
+    console.log(member._hex);
+    if (member._hex == '0x00') {
+      var swicth = layer == 'L1' ? await this.switchETHChain(42) : await this.switchETHChain(69);
       var gasLimit = layer == 'L1' ? 12_500_000 : await orgContract.estimateGas.addMember(address);
       var gasPrice = await provider.getGasPrice();
       var parameters = {

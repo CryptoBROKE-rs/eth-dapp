@@ -1,4 +1,4 @@
-import {Navigate, Outlet, useRoutes} from 'react-router-dom';
+import { Navigate, Outlet, useRoutes } from 'react-router-dom';
 import { useState } from 'react';
 // layouts
 import DashboardLayout from './layouts/dashboard';
@@ -35,7 +35,7 @@ export default function Router(props) {
     window.localStorage['organisation'] = payload['organization'];
     window.localStorage['id'] = payload['id'];
     window.localStorage['jwt'] = auth['accessToken'];
-    window.localStorage['layer'] = "L1";
+    // window.localStorage['layer'] = "L1";
 
     setState(payload);
   };
@@ -53,20 +53,27 @@ export default function Router(props) {
   };
 
   const switchLayer = () => {
-    if (window.localStorage["layer"] == "L1") {
-      window.localStorage["layer"] = "L2"
+    if (window.localStorage['layer'] == 'L1') {
+      window.localStorage['layer'] = 'L2';
     } else {
-      window.localStorage["layer"] = "L1"
+      window.localStorage['layer'] = 'L1';
     }
-  }
-
+  };
 
   return useRoutes([
     {
       path: '/dashboard',
-      element: <DashboardLayout onLoggedOut={handleLoggedOut}/>,
+      element: <DashboardLayout onLoggedOut={handleLoggedOut} />,
       children: [
-        { path: '/', element: <Navigate to={window.localStorage['username'] === undefined ? "/home" : "/dashboard/app"} replace /> },
+        {
+          path: '/',
+          element: (
+            <Navigate
+              to={window.localStorage['username'] === undefined ? '/home' : '/dashboard/app'}
+              replace
+            />
+          )
+        },
         { path: 'app', element: <DashboardApp /> },
         { path: 'user', element: <User /> },
         { path: 'products', element: <Products /> },
@@ -76,7 +83,7 @@ export default function Router(props) {
     },
     {
       path: '/',
-      element: <Outlet/>,
+      element: <Outlet />,
       children: [
         {
           path: 'login',
